@@ -1,0 +1,11 @@
+{
+  "name": "javascript-sandbox",
+  "version": "1.0.0",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "dependencies": {
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^22.1.0"
+  }
+}
