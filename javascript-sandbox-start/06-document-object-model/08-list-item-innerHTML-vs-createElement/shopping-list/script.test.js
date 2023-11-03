@@ -1,17 +1,10 @@
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+const {loadJsDomFromFile} = require("../../../testing/Testing");
 
 let dom;
 
 beforeEach(async () => {
-  dom = await JSDOM.fromFile(
+  dom = await loadJsDomFromFile(
     "./javascript-sandbox-start/06-document-object-model/08-list-item-innerHTML-vs-createElement/shopping-list/index.html",
-    {
-      resources: "usable",
-      runScripts: "dangerously"
-    });
-  await new Promise(resolve =>
-    dom.window.addEventListener("load", resolve)
   );
 });
 

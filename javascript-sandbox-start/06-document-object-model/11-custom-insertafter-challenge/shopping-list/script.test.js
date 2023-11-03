@@ -1,20 +1,12 @@
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+const {loadJsDomFromFile} = require("../../../testing/Testing");
 
 describe("insertAfter", () => {
   let window;
 
   beforeEach(async () => {
-    dom = await JSDOM.fromFile(
+    window = (await loadJsDomFromFile(
       "./javascript-sandbox-start/06-document-object-model/11-custom-insertafter-challenge/shopping-list/index.html",
-      {
-        resources: "usable",
-        runScripts: "dangerously"
-      });
-    await new Promise(resolve =>
-      dom.window.addEventListener("load", resolve)
-    );
-    window = dom.window;
+    )).window;
   });
 
   test("first element of parent", () => {
