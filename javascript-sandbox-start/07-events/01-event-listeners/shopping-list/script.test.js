@@ -12,13 +12,17 @@ afterEach(() => {
   window.close();
 });
 
-test("Clicking on the 'Clear All' button should clear all items from the list", async() => {
-  expect.assertions(1);
-
+test("Clicking on the 'Clear All' button should clear all items from the list", done => {
   const clearButton = window.document.querySelector("#clear");
-  clearButton.addEventListener("click", () => {
-    const itemList = window.document.querySelector("#item-list");
-    expect(itemList.childElementCount).toBe(0);
+
+  clearButton.addEventListener("click", function () {
+    try {
+      const itemList = window.document.querySelector("#item-list");
+      expect(itemList.childElementCount).toBe(0);
+      done();
+    } catch (e) {
+      done(e);
+    }
   });
 
   clearButton.click();
