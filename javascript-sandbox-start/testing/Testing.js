@@ -3,7 +3,6 @@ const { JSDOM } = jsdom;
 
 async function loadJsDomFromFile(filepath){
   const dom = await JSDOM.fromFile(
-    // `../../${filepath}`,
     filepath,
     {
       resources: "usable",
