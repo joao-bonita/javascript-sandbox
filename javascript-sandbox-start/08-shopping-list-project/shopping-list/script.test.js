@@ -7,17 +7,25 @@ import {screen} from "@testing-library/dom";
 import {userEvent} from "@testing-library/user-event";
 import {promises as fs} from "fs";
 
-test("Add Item' button should add an item to the top of the list", async () => {
+test("Should add an item to the top of the list when using the 'Add Item' button", async () => {
   await loadHtmlAndScript(
     "./javascript-sandbox-start/08-shopping-list-project/shopping-list/index.html",
     "./javascript-sandbox-start/08-shopping-list-project/shopping-list/script.js");
 
-  const itemsList = screen.getByTestId("item-list");
-
-  const itemInput = screen.getByTestId("item-input");
+  const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
   const user = userEvent.setup();
   await user.click(itemInput);
-  // await user.type(itemInput, "Eggs");
+  await user.type(itemInput, "Eggs");
+  const addItemButton = screen.getByRole("button", {name: "Add Item"});
+  await user.click(addItemButton);
+
+  await user.clear(itemInput);
+  await user.type(itemInput, "Cheese");
+  await user.click(addItemButton);
+
+  const itemsList = screen.getByRole("list");
+  expect(itemsList.firstElementChild).toHaveTextContent("Cheese");
+  expect(itemsList.children.item(1)).toHaveTextContent("Eggs");
 });
 
 async function loadHtmlAndScript(htmlFilepath, scriptFilepath) {
