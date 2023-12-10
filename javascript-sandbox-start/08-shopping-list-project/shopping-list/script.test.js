@@ -7,6 +7,8 @@ import {screen, within} from "@testing-library/dom";
 import {userEvent} from "@testing-library/user-event";
 import {promises as fs} from "fs";
 
+let user;
+
 const sideEffects = {
   document: {
     addEventListener: {
@@ -52,9 +54,7 @@ beforeAll(async () => {
 // objects. Tests requiring a full JSDOM reset should be stored in separate
 // files, which is the only way to do a complete JSDOM reset with Jest.
 beforeEach(async () => {
-  const rootElm = document.documentElement;
-
-  // Remove global listeners and keys
+// Remove global listeners and keys
   ['document', 'window'].forEach(obj => {
     const refs = sideEffects[obj].addEventListener.refs;
 
@@ -81,11 +81,13 @@ beforeEach(async () => {
     "./javascript-sandbox-start/08-shopping-list-project/shopping-list/index.html",
     "./javascript-sandbox-start/08-shopping-list-project/shopping-list/script.js");
 
+  jest.restoreAllMocks();
+
+  user = userEvent.setup();
 });
 
-test("Should add an item to the top of the list when using the 'Add Item' button", async () => {
+test("Should add an item to the bottom of the list when using the 'Add Item' button", async () => {
   const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
-  const user = userEvent.setup();
   await user.click(itemInput);
   await user.type(itemInput, "Eggs");
   const addItemButton = screen.getByRole("button", {name: "Add Item"});
@@ -96,20 +98,46 @@ test("Should add an item to the top of the list when using the 'Add Item' button
   await user.click(addItemButton);
 
   const itemsList = screen.getByRole("list");
-  expect(itemsList.children.item(0)).toHaveTextContent("Cheese");
-  expect(itemsList.children.item(1)).toHaveTextContent("Eggs");
+  expect(itemsList.children.item(4)).toHaveTextContent("Eggs");
+  expect(itemsList.children.item(5)).toHaveTextContent("Cheese");
 });
 
 test("Should add a 'remove item' button to a new item", async () => {
   const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
-  const user = userEvent.setup();
   await user.click(itemInput);
   await user.type(itemInput, "Eggs");
   const addItemButton = screen.getByRole("button", {name: "Add Item"});
   await user.click(addItemButton);
 
   const newListItem = screen.getByRole("list").firstElementChild;
-  within(newListItem).getByRole("button");
+  const deleteButton = within(newListItem).getByRole("button");
+  expect(deleteButton).toHaveClass("remove-item btn-link text-red");
+  const xMark = deleteButton.firstElementChild;
+  expect(xMark).not.toBeNull();
+  expect(xMark.tagName).toBe("I");
+  expect(xMark.className).toBe("fa-solid fa-xmark");
+
+});
+
+test("Should alert user if no item is typed in when 'Add Item' button is clicked", async () => {
+  jest.spyOn(window, "alert").mockImplementation(() => {});
+
+  const itemsList = screen.getByRole("list");
+  const addItemButton = screen.getByRole("button", {name: "Add Item"});
+  await user.click(addItemButton);
+
+  expect(window.alert).toHaveBeenCalledWith("Please add an item");
+  expect(itemsList.children.length).toBe(4);
+})
+
+test("Should clear item input after user adds an item", async () => {
+  const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
+  await user.click(itemInput);
+  await user.type(itemInput, "Eggs");
+  const addItemButton = screen.getByRole("button", {name: "Add Item"});
+  await user.click(addItemButton);
+
+  expect(itemInput.value).toBe("");
 });
 
 async function loadHtmlAndScript(htmlFilepath, scriptFilepath) {
