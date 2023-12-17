@@ -1,7 +1,8 @@
 
 function runMyJavascript() {
   const itemForm = document.getElementById("item-form");
-
+  const itemsList = document.getElementById("item-list");
+  const clearAllButton = document.getElementById("clear");
 
   function addItemToList(event) {
     event.preventDefault();
@@ -13,14 +14,35 @@ function runMyJavascript() {
     }
     const itemElement = document.createElement("li");
     itemElement.appendChild(document.createTextNode(newItem));
-    const deleteButton = newDeleteButton();
-    itemElement.appendChild(deleteButton);
-    const itemsList = document.getElementById("item-list");
+    const removeItemButton = newRemoveItemButton();
+    itemElement.appendChild(removeItemButton);
     itemsList.appendChild(itemElement);
     itemInput.value = "";
   }
 
-  function newDeleteButton() {
+  function removeItemFromList(event) {
+    const elementClicked = event.target;
+    let elementToRemove;
+
+    if (elementClicked.tagName === "I") {
+      elementToRemove = elementClicked.parentElement.parentElement;
+    } else if (elementClicked.tagName === "BUTTON") {
+      elementToRemove = elementClicked.parentElement;
+    }
+
+    if (elementToRemove !== undefined) {
+      elementToRemove.remove();
+    }
+  }
+
+  function removeAllItemsFromList() {
+    let listItem;
+    while ((listItem = itemsList.firstElementChild) != null) {
+      listItem.remove();
+    }
+  }
+
+  function newRemoveItemButton() {
     const button = document.createElement("button");
     button.className = "remove-item btn-link text-red";
 
@@ -32,6 +54,8 @@ function runMyJavascript() {
   }
 
   itemForm.addEventListener("submit", addItemToList);
+  itemsList.addEventListener("click", removeItemFromList);
+  clearAllButton.addEventListener("click", removeAllItemsFromList);
 }
 
 runMyJavascript();

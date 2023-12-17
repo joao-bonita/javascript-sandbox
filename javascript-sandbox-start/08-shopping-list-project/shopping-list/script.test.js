@@ -3,7 +3,7 @@
  */
 
 import "@testing-library/jest-dom";
-import {screen, within} from "@testing-library/dom";
+import {fireEvent, screen, within} from "@testing-library/dom";
 import {userEvent} from "@testing-library/user-event";
 import {promises as fs} from "fs";
 
@@ -87,36 +87,24 @@ beforeEach(async () => {
 });
 
 test("Should add an item to the bottom of the list when using the 'Add Item' button", async () => {
-  const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
-  await user.click(itemInput);
-  await user.type(itemInput, "Eggs");
-  const addItemButton = screen.getByRole("button", {name: "Add Item"});
-  await user.click(addItemButton);
-
-  await user.clear(itemInput);
-  await user.type(itemInput, "Cheese");
-  await user.click(addItemButton);
+  await userAddAnItem("Eggs");
+  await userAddAnItem("Cheese");
 
   const itemsList = screen.getByRole("list");
-  expect(itemsList.children.item(4)).toHaveTextContent("Eggs");
-  expect(itemsList.children.item(5)).toHaveTextContent("Cheese");
+  expect(itemsList.children.item(0)).toHaveTextContent("Eggs");
+  expect(itemsList.children.item(1)).toHaveTextContent("Cheese");
 });
 
 test("Should add a 'remove item' button to a new item", async () => {
-  const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
-  await user.click(itemInput);
-  await user.type(itemInput, "Eggs");
-  const addItemButton = screen.getByRole("button", {name: "Add Item"});
-  await user.click(addItemButton);
+  await userAddAnItem("Eggs");
 
   const newListItem = screen.getByRole("list").firstElementChild;
-  const deleteButton = within(newListItem).getByRole("button");
-  expect(deleteButton).toHaveClass("remove-item btn-link text-red");
-  const xMark = deleteButton.firstElementChild;
+  const removeItemButton = within(newListItem).getByRole("button");
+  expect(removeItemButton).toHaveClass("remove-item btn-link text-red");
+  const xMark = removeItemButton.firstElementChild;
   expect(xMark).not.toBeNull();
   expect(xMark.tagName).toBe("I");
   expect(xMark.className).toBe("fa-solid fa-xmark");
-
 });
 
 test("Should alert user if no item is typed in when 'Add Item' button is clicked", async () => {
@@ -127,18 +115,86 @@ test("Should alert user if no item is typed in when 'Add Item' button is clicked
   await user.click(addItemButton);
 
   expect(window.alert).toHaveBeenCalledWith("Please add an item");
-  expect(itemsList.children.length).toBe(4);
+  expect(itemsList.children.length).toBe(0);
 })
 
 test("Should clear item input after user adds an item", async () => {
-  const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
-  await user.click(itemInput);
-  await user.type(itemInput, "Eggs");
-  const addItemButton = screen.getByRole("button", {name: "Add Item"});
-  await user.click(addItemButton);
+  await userAddAnItem("Eggs");
 
+  const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
   expect(itemInput.value).toBe("");
 });
+
+test("Should remove item when clicking on the 'remove item' button", async () => {
+  // Given we have 'Eggs' & 'Cheese' on the list
+  await userAddAnItem("Eggs");
+  await userAddAnItem("Cheese");
+
+  // When we delete 'Eggs'
+  const itemsList = screen.getByRole("list");
+  const eggsItem = itemsList.firstElementChild;
+  const removeEggsButton = within(eggsItem).getByRole("button");
+  await user.click(removeEggsButton);
+
+  // Then we end up with only 'Cheese'
+  expect(itemsList.children.length).toBe(1);
+  expect(itemsList.firstElementChild).toHaveTextContent("Cheese");
+});
+
+test("Should remove item when clicking on the 'remove item' icon", async () => {
+  // Given we have 'Eggs' & 'Cheese' on the list
+  await userAddAnItem("Eggs");
+  await userAddAnItem("Cheese");
+
+  // When we delete 'Eggs'
+  const itemsList = screen.getByRole("list");
+  const eggsItem = itemsList.firstElementChild;
+  const removeEggsButton = within(eggsItem).getByRole("button");
+  const removeEggsIcon = removeEggsButton.firstElementChild;
+  await user.click(removeEggsIcon);
+
+  // Then we end up with only 'Cheese'
+  expect(itemsList.children.length).toBe(1);
+  expect(itemsList.firstElementChild).toHaveTextContent("Cheese");
+});
+
+test("Should not remove item when clicking on the item itself", async () => {
+  // Given we have 'Eggs' & 'Cheese' on the list
+  await userAddAnItem("Eggs");
+  await userAddAnItem("Cheese");
+
+  // When we delete 'Eggs'
+  const itemsList = screen.getByRole("list");
+  const eggsItem = itemsList.firstElementChild;
+  fireEvent.click(eggsItem);
+
+  // Then we end up with only 'Cheese'
+  expect(itemsList.children.length).toBe(2);
+  expect(itemsList.children.item(0)).toHaveTextContent("Eggs");
+  expect(itemsList.children.item(1)).toHaveTextContent("Cheese");
+})
+
+test("Should remove all items when clicking on the 'Clear All' button", async () => {
+  await userAddAnItem("Eggs");
+  await userAddAnItem("Cheese");
+  await userAddAnItem("Noodles");
+
+  const clearAllButton = screen.getByRole("button", {name: "Clear All"});
+  await user.click(clearAllButton);
+
+  const itemsList = screen.getByRole("list");
+  expect(itemsList.children.length).toBe(0);
+});
+
+async function userAddAnItem(item) {
+  const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
+  const addItemButton = screen.getByRole("button", {name: "Add Item"});
+
+  await user.click(itemInput);
+  await user.clear(itemInput);
+  await user.type(itemInput, item);
+  await user.click(addItemButton);
+}
 
 async function loadHtmlAndScript(htmlFilepath, scriptFilepath) {
   await readHtmlBodyIntoJsDom(htmlFilepath);
