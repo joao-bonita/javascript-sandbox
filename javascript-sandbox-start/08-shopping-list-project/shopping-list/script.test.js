@@ -225,36 +225,47 @@ describe("Removing items", () => {
 });
 
 describe("Clear UI state (Show/hide Clear and Filter)", () => {
-  test("Should not show 'Clear All' button and 'Filter Items' input when page loads without any items", () => {
-    expect(screen.getByRole("list").children.length).toBe(0);
-    const clearAllButton = screen.queryByRole("button", {name: "Clear All"});
-    const filterItemsInput = screen.queryByRole("textbox", {name: "Filter Items"});
-    expect(clearAllButton).toBeNull();
-    expect(filterItemsInput).toBeNull();
-  });
+  describe.each([
+    {name: "Clear All", role: "button"},
+    {name: "Filter Items", role: "textbox"},
+  ])("'$name' $role", ({name, role}) => {
 
-  test("Should not show 'Clear All' button when the last item is removed", async () => {
-    jest.spyOn(window, "confirm").mockReturnValue(true);
-    await userAddAnItem("Eggs");
+    test(`Should not show '${name}' ${role} when page loads without any items`, () => {
+      expect(screen.getByRole("list").children.length).toBe(0);
+      const widget = screen.queryByRole(role, {name: name});
+      expect(widget).toBeNull();
+    });
 
-    const itemsList = screen.getByRole("list");
-    const item = itemsList.firstElementChild;
-    const removeEggsButton = within(item).getByRole("button");
-    await user.click(removeEggsButton);
+    test(`Should not show '${name}' ${role} when the last item is removed`, async () => {
+      jest.spyOn(window, "confirm").mockReturnValue(true);
+      await userAddAnItem("Eggs");
 
-    const clearAllButton = screen.queryByRole("button", {name: "Clear All"});
-    expect(clearAllButton).toBeNull();
-  });
+      const itemsList = screen.getByRole("list");
+      const item = itemsList.firstElementChild;
+      const removeEggsButton = within(item).getByRole("button");
+      await user.click(removeEggsButton);
 
-  test("Should not show 'Clear All' button when all items are cleared", async () => {
-    await userAddAnItem("Eggs");
-    await userAddAnItem("Cheese");
+      const widget = screen.queryByRole(role, {name: name});
+      expect(widget).toBeNull();
+    });
 
-    let clearAllButton = screen.getByRole("button", {name: "Clear All"});
-    await user.click(clearAllButton);
+    test(`Should not show ''${name}' ${role} when all items are cleared`, async () => {
+      await userAddAnItem("Eggs");
+      await userAddAnItem("Cheese");
 
-    clearAllButton = screen.queryByRole("button", {name: "Clear All"});
-    expect(clearAllButton).toBeNull();
+      let clearAllButton = screen.getByRole("button", {name: "Clear All"});
+      await user.click(clearAllButton);
+
+      const widget = screen.queryByRole(role, {name: name});
+      expect(widget).toBeNull();
+    });
+
+    test(`Should show ''${name}' ${role} at least one item is added to the list`, async () => {
+      await userAddAnItem("Eggs");
+
+      const widget = screen.queryByRole(role, {name: name});
+      expect(widget).toBeInTheDocument();
+    });
   });
 });
 

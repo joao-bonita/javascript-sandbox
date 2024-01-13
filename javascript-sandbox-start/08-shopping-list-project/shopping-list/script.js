@@ -66,6 +66,7 @@ function runMyJavascript() {
       filterItemsInput.style.display = "none";
     } else {
       clearAllButton.style.display = "";
+      filterItemsInput.style.display = "";
     }
   }
 
