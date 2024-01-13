@@ -3,6 +3,7 @@ function runMyJavascript() {
   const itemForm = document.getElementById("item-form");
   const itemsList = document.getElementById("item-list");
   const clearAllButton = document.getElementById("clear");
+  const filterItemsInput = document.getElementById("filter");
 
   function addItemToList(event) {
     event.preventDefault();
@@ -18,6 +19,7 @@ function runMyJavascript() {
     itemElement.appendChild(removeItemButton);
     itemsList.appendChild(itemElement);
     itemInput.value = "";
+    toggleClearAndFilter();
   }
 
   function removeItemFromList(event) {
@@ -31,8 +33,12 @@ function runMyJavascript() {
     }
 
     if (elementToRemove !== undefined) {
-      elementToRemove.remove();
+      if (confirm("Are you sure?")) {
+        elementToRemove.remove();
+      }
     }
+
+    toggleClearAndFilter();
   }
 
   function removeAllItemsFromList() {
@@ -40,6 +46,7 @@ function runMyJavascript() {
     while ((listItem = itemsList.firstElementChild) != null) {
       listItem.remove();
     }
+    toggleClearAndFilter();
   }
 
   function newRemoveItemButton() {
@@ -53,9 +60,19 @@ function runMyJavascript() {
     return button;
   }
 
+  function toggleClearAndFilter() {
+    if (itemsList.children.length === 0) {
+      clearAllButton.style.display = "none";
+      filterItemsInput.style.display = "none";
+    } else {
+      clearAllButton.style.display = "";
+    }
+  }
+
   itemForm.addEventListener("submit", addItemToList);
   itemsList.addEventListener("click", removeItemFromList);
   clearAllButton.addEventListener("click", removeAllItemsFromList);
+  toggleClearAndFilter();
 }
 
 runMyJavascript();
