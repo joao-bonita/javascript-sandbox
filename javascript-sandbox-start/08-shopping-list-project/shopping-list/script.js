@@ -1,5 +1,6 @@
 
 function runMyJavascript() {
+  const STORAGE_KEY = "items";
   const itemForm = document.getElementById("item-form");
   const itemsList = document.getElementById("item-list");
   const clearAllButton = document.getElementById("clear");
@@ -13,13 +14,24 @@ function runMyJavascript() {
       alert("Please add an item");
       return;
     }
+    addItemToPage(newItem);
+    itemInput.value = "";
+    toggleClearAndFilter();
+    addItemToStorage(newItem);
+  }
+
+  function addItemToPage(newItem) {
     const itemElement = document.createElement("li");
     itemElement.appendChild(document.createTextNode(newItem));
     const removeItemButton = newRemoveItemButton();
     itemElement.appendChild(removeItemButton);
     itemsList.appendChild(itemElement);
-    itemInput.value = "";
-    toggleClearAndFilter();
+  }
+
+  function addItemToStorage(newItem) {
+    const itemsInStorage = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+    itemsInStorage.push(newItem);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(itemsInStorage));
   }
 
   function removeItemFromList(event) {

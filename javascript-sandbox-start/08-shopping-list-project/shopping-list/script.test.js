@@ -55,7 +55,7 @@ beforeAll(async () => {
 // objects. Tests requiring a full JSDOM reset should be stored in separate
 // files, which is the only way to do a complete JSDOM reset with Jest.
 beforeEach(async () => {
-// Remove global listeners and keys
+  // Remove global listeners and keys
   ['document', 'window'].forEach(obj => {
     const refs = sideEffects[obj].addEventListener.refs;
 
@@ -76,6 +76,8 @@ beforeEach(async () => {
         delete globalObject[key];
       }
     });
+
+    localStorage.clear();
   });
 
   await loadHtmlAndScript(
@@ -126,6 +128,12 @@ describe("Adding items", () => {
     expect(itemInput.value).toBe("");
   });
 
+  test("Should add items to local storage", async () => {
+    await userAddAnItem("Eggs");
+    await userAddAnItem("Cheese");
+
+    expect(localStorage.getItem("items")).toBe('["Eggs","Cheese"]');
+  });
 });
 
 describe("Removing items", () => {
