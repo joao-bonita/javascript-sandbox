@@ -8,6 +8,7 @@ import {userEvent} from "@testing-library/user-event";
 import {promises as fs} from "fs";
 
 let user;
+let itemsList;
 
 const sideEffects = {
   document: {
@@ -84,6 +85,7 @@ beforeEach(async () => {
   jest.restoreAllMocks();
 
   user = userEvent.setup();
+  itemsList = screen.getByRole("list");
 });
 
 describe("Adding items", () => {
@@ -91,7 +93,6 @@ describe("Adding items", () => {
     await userAddAnItem("Eggs");
     await userAddAnItem("Cheese");
 
-    const itemsList = screen.getByRole("list");
     expect(itemsList.children.item(0)).toHaveTextContent("Eggs");
     expect(itemsList.children.item(1)).toHaveTextContent("Cheese");
   });
@@ -99,7 +100,7 @@ describe("Adding items", () => {
   test("Should add a 'remove item' button to a new item", async () => {
     await userAddAnItem("Eggs");
 
-    const newListItem = screen.getByRole("list").firstElementChild;
+    const newListItem = itemsList.firstElementChild;
     const removeItemButton = within(newListItem).getByRole("button");
     expect(removeItemButton).toHaveClass("remove-item btn-link text-red");
     const xMark = removeItemButton.firstElementChild;
@@ -111,7 +112,6 @@ describe("Adding items", () => {
   test("Should alert user if no item is typed in when 'Add Item' button is clicked", async () => {
     jest.spyOn(window, "alert").mockImplementation(() => {});
 
-    const itemsList = screen.getByRole("list");
     const addItemButton = screen.getByRole("button", {name: "Add Item"});
     await user.click(addItemButton);
 
@@ -134,7 +134,6 @@ describe("Removing items", () => {
     jest.spyOn(window, "confirm").mockReturnValue(true);
     await userAddAnItem("Eggs");
 
-    const itemsList = screen.getByRole("list");
     const eggsItem = itemsList.firstElementChild;
     const removeEggsButton = within(eggsItem).getByRole("button");
     await user.click(removeEggsButton);
@@ -150,7 +149,6 @@ describe("Removing items", () => {
     await userAddAnItem("Cheese");
 
     // When we delete 'Eggs'
-    const itemsList = screen.getByRole("list");
     const eggsItem = itemsList.firstElementChild;
     const removeEggsButton = within(eggsItem).getByRole("button");
     await user.click(removeEggsButton);
@@ -168,7 +166,6 @@ describe("Removing items", () => {
     await userAddAnItem("Cheese");
 
     // When we try to delete 'Eggs' but cancel (see mock above)
-    const itemsList = screen.getByRole("list");
     const eggsItem = itemsList.firstElementChild;
     const removeEggsButton = within(eggsItem).getByRole("button");
     await user.click(removeEggsButton);
@@ -185,7 +182,6 @@ describe("Removing items", () => {
     await userAddAnItem("Cheese");
 
     // When we delete 'Eggs'
-    const itemsList = screen.getByRole("list");
     const eggsItem = itemsList.firstElementChild;
     const removeEggsButton = within(eggsItem).getByRole("button");
     const removeEggsIcon = removeEggsButton.firstElementChild;
@@ -202,7 +198,6 @@ describe("Removing items", () => {
     await userAddAnItem("Cheese");
 
     // When we delete 'Eggs'
-    const itemsList = screen.getByRole("list");
     const eggsItem = itemsList.firstElementChild;
     fireEvent.click(eggsItem);
 
@@ -220,7 +215,7 @@ describe("Removing items", () => {
     const clearAllButton = screen.getByRole("button", {name: "Clear All"});
     await user.click(clearAllButton);
 
-    expect(screen.getByRole("list").children.length).toBe(0);
+    expect(itemsList.children.length).toBe(0);
   });
 });
 
@@ -231,7 +226,7 @@ describe("Clear UI state (Show/hide Clear and Filter)", () => {
   ])("'$name' $role", ({name, role}) => {
 
     test(`Should not show '${name}' ${role} when page loads without any items`, () => {
-      expect(screen.getByRole("list").children.length).toBe(0);
+      expect(itemsList.children.length).toBe(0);
       const widget = screen.queryByRole(role, {name: name});
       expect(widget).toBeNull();
     });
@@ -240,7 +235,6 @@ describe("Clear UI state (Show/hide Clear and Filter)", () => {
       jest.spyOn(window, "confirm").mockReturnValue(true);
       await userAddAnItem("Eggs");
 
-      const itemsList = screen.getByRole("list");
       const item = itemsList.firstElementChild;
       const removeEggsButton = within(item).getByRole("button");
       await user.click(removeEggsButton);
@@ -266,6 +260,42 @@ describe("Clear UI state (Show/hide Clear and Filter)", () => {
       const widget = screen.queryByRole(role, {name: name});
       expect(widget).toBeInTheDocument();
     });
+  });
+});
+
+describe("Filtering", () => {
+  test.each([
+    {filterText: "Z", visibleItems: []},
+    {filterText: "Egg", visibleItems: ["Eggs", "Eggnog"]},
+    {filterText: "egg", visibleItems: ["Eggs", "Eggnog"]},
+    {filterText: "Eggs", visibleItems: ["Eggs"]},
+    {filterText: "eggn", visibleItems: ["Eggnog"]},
+    {filterText: "eggnogy", visibleItems: []},
+    {filterText: "gg", visibleItems: ["Eggs", "Eggnog"]},
+    {filterText: "e", visibleItems: ["Eggs", "Eggnog", "Cheese"]},
+  ])("Should filter Eggs, Eggnog and Cheese down to $visibleItems when typing in '$filterText'", async ({filterText, visibleItems}) => {
+    const allItems = ["Cheese", "Eggnog", "Eggs"];
+    for (const item of allItems) {
+      await userAddAnItem(item);
+    }
+
+    const filterItemsInput = screen.getByRole("textbox", {name: "Filter Items"});
+    await user.type(filterItemsInput, filterText);
+
+    const invisibleItems = allItems.filter(item => !visibleItems.includes(item));
+    visibleItems.forEach(visibleItem => expect(within(itemsList).queryByText(visibleItem)).toBeVisible());
+    invisibleItems.forEach(invisibleItem => expect(within(itemsList).queryByText(invisibleItem)).not.toBeVisible());
+  });
+
+  test("Should display filtered item again when filter is changed", async () => {
+    await userAddAnItem("Eggs");
+    await userAddAnItem("Eggnog");
+
+    const filterItemsInput = screen.getByRole("textbox", {name: "Filter Items"});
+    await user.type(filterItemsInput, "Eggs{Backspace}");
+
+    expect(within(itemsList).queryByText("Eggs")).toBeVisible();
+    expect(within(itemsList).queryByText("Eggnog")).toBeVisible();
   });
 });
 

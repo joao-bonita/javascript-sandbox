@@ -70,9 +70,21 @@ function runMyJavascript() {
     }
   }
 
+  function filterItems(inputEvent) {
+    const filterText = inputEvent.target.value.toLowerCase();
+    for (const item of itemsList.children) {
+      if (!item.textContent.toLowerCase().includes(filterText)) {
+        item.style.display = "none";
+      } else {
+        item.style.display = "";
+      }
+    }
+  }
+
   itemForm.addEventListener("submit", addItemToList);
   itemsList.addEventListener("click", removeItemFromList);
   clearAllButton.addEventListener("click", removeAllItemsFromList);
+  filterItemsInput.addEventListener("input", filterItems);
   toggleClearAndFilter();
 }
 
