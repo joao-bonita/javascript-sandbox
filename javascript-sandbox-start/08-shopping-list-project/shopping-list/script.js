@@ -58,10 +58,20 @@ function runMyJavascript() {
     if (elementToRemove !== undefined) {
       if (confirm("Are you sure?")) {
         elementToRemove.remove();
+        removeItemFromStorage(elementToRemove.textContent);
       }
     }
 
     toggleClearAndFilter();
+  }
+
+  function removeItemFromStorage(elementToRemove) {
+    const itemsInStorage = getItemsFromLocalStorage();
+    const indexToRemove = itemsInStorage.indexOf(elementToRemove);
+    if (indexToRemove !== -1) {
+      itemsInStorage.splice(indexToRemove, 1);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(itemsInStorage));
+    }
   }
 
   function removeAllItemsFromList() {

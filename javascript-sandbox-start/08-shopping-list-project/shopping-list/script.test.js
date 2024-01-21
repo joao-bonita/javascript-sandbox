@@ -152,18 +152,16 @@ describe("Adding items", () => {
 
 describe("Removing items", () => {
 
-  test("should ask for removal confirmation when clicking on the 'remove item' button", async () => {
+  test("Should ask for removal confirmation when clicking on the 'remove item' button", async () => {
     jest.spyOn(window, "confirm").mockReturnValue(true);
     await userAddAnItem("Eggs");
 
-    const eggsItem = itemsList.firstElementChild;
-    const removeEggsButton = within(eggsItem).getByRole("button");
-    await user.click(removeEggsButton);
+    await userRemoveAnItemViaRemoveButton("Eggs");
 
     expect(window.confirm).toHaveBeenCalledWith("Are you sure?");
   });
 
-  test("Should remove item when clicking on the 'remove item' button and confirming", async () => {
+  test("Should remove item from page when clicking on the 'remove item' button and confirming", async () => {
     jest.spyOn(window, "confirm").mockReturnValue(true);
 
     // Given we have 'Eggs' & 'Cheese' on the list
@@ -171,13 +169,25 @@ describe("Removing items", () => {
     await userAddAnItem("Cheese");
 
     // When we delete 'Eggs'
-    const eggsItem = itemsList.firstElementChild;
-    const removeEggsButton = within(eggsItem).getByRole("button");
-    await user.click(removeEggsButton);
+    await userRemoveAnItemViaRemoveButton("Eggs");
 
     // Then we end up with only 'Cheese'
     expect(itemsList.children.length).toBe(1);
     expect(itemsList.firstElementChild).toHaveTextContent("Cheese");
+  });
+
+  test("Should remove item from local storage when clicking on the 'remove item' button and confirming", async() => {
+    jest.spyOn(window, "confirm").mockReturnValue(true);
+
+    // Given we have 'Eggs' & 'Cheese' on the list
+    await userAddAnItem("Eggs");
+    await userAddAnItem("Cheese");
+
+    // When we delete 'Eggs'
+    await userRemoveAnItemViaRemoveButton("Eggs");
+
+    // Then we end up with only 'Cheese'
+    expect(localStorage.getItem("items")).toBe('["Cheese"]');
   });
 
   test("Should not remove item when clicking on the 'remove item' button and cancelling", async () => {
@@ -188,15 +198,13 @@ describe("Removing items", () => {
     await userAddAnItem("Cheese");
 
     // When we try to delete 'Eggs' but cancel (see mock above)
-    const eggsItem = itemsList.firstElementChild;
-    const removeEggsButton = within(eggsItem).getByRole("button");
-    await user.click(removeEggsButton);
+    await userRemoveAnItemViaRemoveButton("Eggs");
 
     // Then we retain both items
     expect(itemsList.children.length).toBe(2);
   });
 
-  test("Should remove item when clicking on the 'remove item' icon and confirming", async () => {
+  test("Should remove item from page when clicking on the 'remove item' icon and confirming", async () => {
     jest.spyOn(window, "confirm").mockReturnValue(true);
 
     // Given we have 'Eggs' & 'Cheese' on the list
@@ -229,7 +237,7 @@ describe("Removing items", () => {
     expect(itemsList.children.item(1)).toHaveTextContent("Cheese");
   })
 
-  test("Should remove all items when clicking on the 'Clear All' button", async () => {
+  test("Should remove all items from page when clicking on the 'Clear All' button", async () => {
     await userAddAnItem("Eggs");
     await userAddAnItem("Cheese");
     await userAddAnItem("Noodles");
@@ -238,6 +246,21 @@ describe("Removing items", () => {
     await user.click(clearAllButton);
 
     expect(itemsList.children.length).toBe(0);
+  });
+
+  test("Should leave local storage unchanged if item was not previously in storage", async () => {
+    jest.spyOn(window, "confirm").mockReturnValue(true);
+
+    // Given we have 'Eggs' & 'Cheese' on the list, but we deliberately corrupt local storage
+    await userAddAnItem("Eggs");
+    await userAddAnItem("Cheese");
+    localStorage.setItem("items", '["Cheese"]');
+
+    // When we delete 'Eggs'
+    await userRemoveAnItemViaRemoveButton("Eggs");
+
+    // Then we end up with only 'Cheese'
+    expect(localStorage.getItem("items")).toBe('["Cheese"]');
   });
 });
 
@@ -329,6 +352,12 @@ async function userAddAnItem(item) {
   await user.clear(itemInput);
   await user.type(itemInput, item);
   await user.click(addItemButton);
+}
+
+async function userRemoveAnItemViaRemoveButton(item) {
+  const listItem = within(itemsList).getByText(item);
+  const removeButton = within(listItem).getByRole("button");
+  await user.click(removeButton);
 }
 
 async function loadShoppingListPage(onLoaded = () => {}) {
