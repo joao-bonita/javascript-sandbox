@@ -77,17 +77,31 @@ beforeEach(async () => {
       }
     });
 
-    localStorage.clear();
   });
 
-  await loadHtmlAndScript(
-    "./javascript-sandbox-start/08-shopping-list-project/shopping-list/index.html",
-    "./javascript-sandbox-start/08-shopping-list-project/shopping-list/script.js");
-
+  localStorage.clear();
   jest.restoreAllMocks();
+
+  await loadShoppingListPage();
 
   user = userEvent.setup();
   itemsList = screen.getByRole("list");
+});
+
+describe("Initial page load", () => {
+  test("Should display items stored in local storage",done => {
+    localStorage.setItem("items", '["Eggs","Cheese"]');
+
+    expect.assertions(2);
+    const onLoaded = async () => {
+      const itemsList = screen.getByRole("list"); // Must query new list in DOM
+      expect(within(itemsList).getByText("Eggs")).toBeInTheDocument();
+      expect(within(itemsList).getByText("Cheese")).toBeInTheDocument();
+      done();
+    };
+
+    loadShoppingListPage(onLoaded); // Must reload page to see items in local storage
+  });
 });
 
 describe("Adding items", () => {
@@ -315,6 +329,13 @@ async function userAddAnItem(item) {
   await user.clear(itemInput);
   await user.type(itemInput, item);
   await user.click(addItemButton);
+}
+
+async function loadShoppingListPage(onLoaded = () => {}) {
+  await loadHtmlAndScript(
+    "./javascript-sandbox-start/08-shopping-list-project/shopping-list/index.html",
+    "./javascript-sandbox-start/08-shopping-list-project/shopping-list/script.js");
+  onLoaded();
 }
 
 async function loadHtmlAndScript(htmlFilepath, scriptFilepath) {

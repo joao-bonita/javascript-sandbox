@@ -20,17 +20,28 @@ function runMyJavascript() {
     addItemToStorage(newItem);
   }
 
-  function addItemToPage(newItem) {
+  function addItemToPage(itemToAdd) {
     const itemElement = document.createElement("li");
-    itemElement.appendChild(document.createTextNode(newItem));
+    itemElement.appendChild(document.createTextNode(itemToAdd));
     const removeItemButton = newRemoveItemButton();
     itemElement.appendChild(removeItemButton);
     itemsList.appendChild(itemElement);
   }
 
-  function addItemToStorage(newItem) {
-    const itemsInStorage = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
-    itemsInStorage.push(newItem);
+  function newRemoveItemButton() {
+    const button = document.createElement("button");
+    button.className = "remove-item btn-link text-red";
+
+    const xMark = document.createElement("i");
+    xMark.className = "fa-solid fa-xmark";
+
+    button.appendChild(xMark);
+    return button;
+  }
+
+  function addItemToStorage(itemToAdd) {
+    const itemsInStorage = getItemsFromLocalStorage();
+    itemsInStorage.push(itemToAdd);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(itemsInStorage));
   }
 
@@ -61,15 +72,12 @@ function runMyJavascript() {
     toggleClearAndFilter();
   }
 
-  function newRemoveItemButton() {
-    const button = document.createElement("button");
-    button.className = "remove-item btn-link text-red";
+  function displayItemsFromLocalStorage() {
+    getItemsFromLocalStorage().forEach(item => addItemToPage(item));
+  }
 
-    const xMark = document.createElement("i");
-    xMark.className = "fa-solid fa-xmark";
-
-    button.appendChild(xMark);
-    return button;
+  function getItemsFromLocalStorage() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
   }
 
   function toggleClearAndFilter() {
@@ -93,11 +101,16 @@ function runMyJavascript() {
     }
   }
 
-  itemForm.addEventListener("submit", addItemToList);
-  itemsList.addEventListener("click", removeItemFromList);
-  clearAllButton.addEventListener("click", removeAllItemsFromList);
-  filterItemsInput.addEventListener("input", filterItems);
-  toggleClearAndFilter();
+  function initialise() {
+    itemForm.addEventListener("submit", addItemToList);
+    itemsList.addEventListener("click", removeItemFromList);
+    clearAllButton.addEventListener("click", removeAllItemsFromList);
+    filterItemsInput.addEventListener("input", filterItems);
+    displayItemsFromLocalStorage();
+    toggleClearAndFilter();
+  }
+
+  initialise();
 }
 
 runMyJavascript();
