@@ -248,6 +248,17 @@ describe("Removing items", () => {
     expect(itemsList.children.length).toBe(0);
   });
 
+  test("Should remove all items from local storage when clicking on the 'Clear All' Button", async () => {
+    await userAddAnItem("Eggs");
+    await userAddAnItem("Cheese");
+    await userAddAnItem("Noodles");
+
+    const clearAllButton = screen.getByRole("button", {name: "Clear All"});
+    await user.click(clearAllButton);
+
+    expect(localStorage.getItem("items")).toBe(null);
+  });
+
   test("Should leave local storage unchanged if item was not previously in storage", async () => {
     jest.spyOn(window, "confirm").mockReturnValue(true);
 
@@ -261,6 +272,50 @@ describe("Removing items", () => {
 
     // Then we end up with only 'Cheese'
     expect(localStorage.getItem("items")).toBe('["Cheese"]');
+  });
+});
+
+describe("Editing items", () => {
+  describe("Editing a single item", () => {
+    let itemElementClicked;
+
+    beforeEach(async () => {
+      await userAddAnItem("Eggs");
+      itemElementClicked = itemsList.firstElementChild;
+      fireEvent.click(itemElementClicked);
+    });
+
+    test("Should style item in edit mode when clicking on the item", async () => {
+      expect(itemElementClicked.classList).toContain("edit-mode");
+    });
+
+    test("Should change form button to an edit button when clicking on the item", async () => {
+      const formButton = await screen.findByRole("button", {name: "Update Item"});
+      expect(formButton.firstElementChild.classList).toContain("fa-pen");
+      expect(formButton.style.backgroundColor).toBe("rgb(34, 139, 34)");
+    });
+
+    test("Should change the item input to show the selected item", async () => {
+      const itemInput = screen.getAllByRole("textbox")[0];
+      expect(itemInput.value).toBe("Eggs");
+    });
+  });
+
+  describe("Editing multiple items", () => {
+    test("Clicking on multiple items should reset the colour of the other items", async () => {
+      await userAddAnItem("Eggs");
+      await userAddAnItem("Cheese");
+
+      const items = await screen.findAllByRole("listitem");
+      const cheese = items[0];
+      const eggs = items[1];
+
+      fireEvent.click(cheese);
+      fireEvent.click(eggs);
+
+      expect(cheese.classList).not.toContain("edit-mode");
+      expect(eggs.classList).toContain("edit-mode");
+    });
   });
 });
 

@@ -1,7 +1,11 @@
 
 function runMyJavascript() {
   const STORAGE_KEY = "items";
+  const EDIT_MODE_CLASS = "edit-mode";
+
   const itemForm = document.getElementById("item-form");
+  const itemInput = document.getElementById("item-input");
+  const formButton = itemForm.querySelector("button");
   const itemsList = document.getElementById("item-list");
   const clearAllButton = document.getElementById("clear");
   const filterItemsInput = document.getElementById("filter");
@@ -45,24 +49,50 @@ function runMyJavascript() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(itemsInStorage));
   }
 
-  function removeItemFromList(event) {
+
+  function onClickItem(event) {
     const elementClicked = event.target;
-    let elementToRemove;
+    let itemToRemove;
 
     if (elementClicked.tagName === "I") {
-      elementToRemove = elementClicked.parentElement.parentElement;
+      itemToRemove = elementClicked.parentElement.parentElement;
     } else if (elementClicked.tagName === "BUTTON") {
-      elementToRemove = elementClicked.parentElement;
+      itemToRemove = elementClicked.parentElement;
     }
 
-    if (elementToRemove !== undefined) {
+    if (itemToRemove !== undefined) {
+      removeItemFromList(itemToRemove);
+    } else {
+      setItemToEditMode(elementClicked);
+    }
+  }
+
+  function removeItemFromList(itemElement) {
+    if (itemElement !== undefined) {
       if (confirm("Are you sure?")) {
-        elementToRemove.remove();
-        removeItemFromStorage(elementToRemove.textContent);
+        itemElement.remove();
+        removeItemFromStorage(itemElement.textContent);
+      }
+    }
+    toggleClearAndFilter();
+  }
+
+  function setItemToEditMode(elementClicked) {
+    for (const item of itemsList.children) {
+      if (item === elementClicked) {
+        item.classList.add(EDIT_MODE_CLASS);
+      } else {
+        item.classList.remove(EDIT_MODE_CLASS);
       }
     }
 
-    toggleClearAndFilter();
+    const newButtonI = document.createElement("I");
+    newButtonI.classList.add("fa-solid", "fa-pen");
+    const newButtonText = document.createTextNode("Update Item");
+    formButton.replaceChildren(newButtonI, newButtonText);
+    formButton.style.backgroundColor = "rgb(34, 139, 34)";
+
+    itemInput.value = elementClicked.textContent;
   }
 
   function removeItemFromStorage(elementToRemove) {
@@ -79,6 +109,7 @@ function runMyJavascript() {
     while ((listItem = itemsList.firstElementChild) != null) {
       listItem.remove();
     }
+    localStorage.removeItem(STORAGE_KEY);
     toggleClearAndFilter();
   }
 
@@ -113,7 +144,7 @@ function runMyJavascript() {
 
   function initialise() {
     itemForm.addEventListener("submit", addItemToList);
-    itemsList.addEventListener("click", removeItemFromList);
+    itemsList.addEventListener("click", onClickItem);
     clearAllButton.addEventListener("click", removeAllItemsFromList);
     filterItemsInput.addEventListener("input", filterItems);
     displayItemsFromLocalStorage();
