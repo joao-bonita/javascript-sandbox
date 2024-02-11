@@ -10,14 +10,23 @@ function runMyJavascript() {
   const clearAllButton = document.getElementById("clear");
   const filterItemsInput = document.getElementById("filter");
 
-  function addItemToList(event) {
+  function onFormSubmit(event) {
     event.preventDefault();
-    const itemInput = document.getElementById("item-input");
     const newItem = itemInput.value;
     if (newItem.length === 0) {
       alert("Please add an item");
       return;
     }
+
+    const itemToEdit = itemsList.querySelector(`.${EDIT_MODE_CLASS}`);
+    if (itemToEdit !== null) {
+      editItem(itemToEdit, newItem);
+    } else {
+      addNewItem(newItem);
+    }
+  }
+
+  function addNewItem(newItem) {
     addItemToPage(newItem);
     itemInput.value = "";
     toggleClearAndFilter();
@@ -49,6 +58,21 @@ function runMyJavascript() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(itemsInStorage));
   }
 
+  function editItem(itemToEdit, newItem) {
+    const oldItem = itemToEdit.firstChild.textContent;
+    itemToEdit.firstChild.textContent = newItem;
+    itemToEdit.classList.remove(EDIT_MODE_CLASS);
+
+    const itemsInStorage = getItemsFromLocalStorage();
+    let indexToReplace = itemsInStorage.indexOf(oldItem);
+    if (indexToReplace === -1) {
+      indexToReplace = itemsInStorage.length;
+    }
+    itemsInStorage.splice(indexToReplace, 1, newItem);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(itemsInStorage));
+
+    styleFormButton(["fa-solid", "fa-plus"], "Add Item", "rgb(51, 51, 51)");
+  }
 
   function onClickItem(event) {
     const elementClicked = event.target;
@@ -85,14 +109,16 @@ function runMyJavascript() {
         item.classList.remove(EDIT_MODE_CLASS);
       }
     }
-
-    const newButtonI = document.createElement("I");
-    newButtonI.classList.add("fa-solid", "fa-pen");
-    const newButtonText = document.createTextNode("Update Item");
-    formButton.replaceChildren(newButtonI, newButtonText);
-    formButton.style.backgroundColor = "rgb(34, 139, 34)";
-
+    styleFormButton(["fa-solid", "fa-pen"], "Update Item", "rgb(34, 139, 34)");
     itemInput.value = elementClicked.textContent;
+  }
+
+  function styleFormButton(classList, text, color) {
+    const newButtonI = document.createElement("I");
+    classList.forEach(clazz => newButtonI.classList.add(clazz));
+    const newButtonText = document.createTextNode(text);
+    formButton.replaceChildren(newButtonI, newButtonText);
+    formButton.style.backgroundColor = color;
   }
 
   function removeItemFromStorage(elementToRemove) {
@@ -143,7 +169,7 @@ function runMyJavascript() {
   }
 
   function initialise() {
-    itemForm.addEventListener("submit", addItemToList);
+    itemForm.addEventListener("submit", onFormSubmit);
     itemsList.addEventListener("click", onClickItem);
     clearAllButton.addEventListener("click", removeAllItemsFromList);
     filterItemsInput.addEventListener("input", filterItems);

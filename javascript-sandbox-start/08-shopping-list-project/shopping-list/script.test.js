@@ -276,7 +276,7 @@ describe("Removing items", () => {
 });
 
 describe("Editing items", () => {
-  describe("Editing a single item", () => {
+  describe("Clicking on a single item to edit", () => {
     let itemElementClicked;
 
     beforeEach(async () => {
@@ -301,8 +301,8 @@ describe("Editing items", () => {
     });
   });
 
-  describe("Editing multiple items", () => {
-    test("Clicking on multiple items should reset the colour of the other items", async () => {
+  describe("Clicking on multiple items to edit", () => {
+    test("Should reset the colour of the other items", async () => {
       await userAddAnItem("Eggs");
       await userAddAnItem("Cheese");
 
@@ -316,6 +316,55 @@ describe("Editing items", () => {
       expect(cheese.classList).not.toContain("edit-mode");
       expect(eggs.classList).toContain("edit-mode");
     });
+  });
+
+  describe("Editing an item", () => {
+    let theItem;
+
+    beforeEach(async () => {
+      await userAddAnItem("Noodles");
+
+      theItem = await screen.findByRole("listitem");
+      await userEditAnItem(theItem, "Rice noodles");
+    });
+
+    test("Should update the item on the page", async () => {
+      const list = screen.getByRole("list");
+
+      expect(list.children.length).toBe(1);
+      expect(theItem.textContent).toBe("Rice noodles");
+    });
+
+    test("Should keep the remove button in the item", async () => {
+      const removeItemButton = within(theItem).queryByRole("button");
+      expect(removeItemButton).not.toBeNull();
+
+      const xMark = removeItemButton.firstElementChild;
+      expect(xMark).not.toBeNull();
+    });
+
+    test("Should update the item in local storage", () => {
+      expect(localStorage.getItem("items")).toBe('["Rice noodles"]');
+    });
+
+    test("Should revert style of the item", () => {
+      expect(theItem.classList).not.toContain("edit-mode");
+    })
+
+    test("Should revert style of the form button", async () => {
+      const formButton = await screen.findByRole("button", {name: "Add Item"});
+      expect(formButton.firstElementChild.classList).not.toContain("fa-pen");
+      expect(formButton.style.backgroundColor).toBe("rgb(51, 51, 51)");
+    });
+  });
+
+  test("Should add item to local storage even if it was corrupted", async () => {
+    await userAddAnItem("Noodles");
+    localStorage.setItem("items", '["Eggs"]'); // Simulate corruption of local storage
+
+    await userEditAnItem(await screen.findByRole("listitem"), "Rice noodles");
+
+    expect(localStorage.getItem("items")).toBe('["Eggs","Rice noodles"]');
   });
 });
 
@@ -407,6 +456,17 @@ async function userAddAnItem(item) {
   await user.clear(itemInput);
   await user.type(itemInput, item);
   await user.click(addItemButton);
+}
+
+async function userEditAnItem(itemElement, newItem) {
+  fireEvent.click(itemElement);
+
+  const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
+  await user.clear(itemInput);
+  await user.type(itemInput, newItem);
+
+  const formButton = await screen.findByRole("button", {name: "Update Item"});
+  await user.click(formButton);
 }
 
 async function userRemoveAnItemViaRemoveButton(item) {
