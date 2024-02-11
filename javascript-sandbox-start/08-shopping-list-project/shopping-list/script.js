@@ -27,6 +27,9 @@ function runMyJavascript() {
   }
 
   function addNewItem(newItem) {
+    if (checkForDuplicateItem(newItem)) {
+      return;
+    }
     addItemToPage(newItem);
     itemInput.value = "";
     toggleClearAndFilter();
@@ -60,6 +63,9 @@ function runMyJavascript() {
 
   function editItem(itemToEdit, newItem) {
     const oldItem = itemToEdit.firstChild.textContent;
+    if (newItem !== oldItem && checkForDuplicateItem(newItem)) {
+      return;
+    }
     itemToEdit.firstChild.textContent = newItem;
     itemToEdit.classList.remove(EDIT_MODE_CLASS);
 
@@ -72,6 +78,14 @@ function runMyJavascript() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(itemsInStorage));
 
     styleFormButton(["fa-solid", "fa-plus"], "Add Item", "rgb(51, 51, 51)");
+  }
+
+  function checkForDuplicateItem(newItem) {
+    if (getItemsFromLocalStorage().includes(newItem)) {
+      alert("That item already exists!");
+      return true;
+    }
+    return false;
   }
 
   function onClickItem(event) {

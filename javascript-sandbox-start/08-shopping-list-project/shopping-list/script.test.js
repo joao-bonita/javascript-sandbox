@@ -148,6 +148,16 @@ describe("Adding items", () => {
 
     expect(localStorage.getItem("items")).toBe('["Eggs","Cheese"]');
   });
+
+  test("Should not allow a duplicate item to be added", async () => {
+    jest.spyOn(window, "alert").mockImplementation(() => {});
+    await userAddAnItem("Eggs");
+
+    await userAddAnItem("Eggs");
+
+    expect(window.alert).toHaveBeenCalledWith("That item already exists!");
+    expect(itemsList.children.length).toBe(1);
+  });
 });
 
 describe("Removing items", () => {
@@ -365,6 +375,31 @@ describe("Editing items", () => {
     await userEditAnItem(await screen.findByRole("listitem"), "Rice noodles");
 
     expect(localStorage.getItem("items")).toBe('["Eggs","Rice noodles"]');
+  });
+
+  describe("Duplicate item", () => {
+    test("Should not allow a duplicate item to be added via editing", async () => {
+      jest.spyOn(window, "alert").mockImplementation(() => {});
+      await userAddAnItem("Eggs");
+      await userAddAnItem("Noodles")
+
+      const eggs = within(itemsList).getByText("Eggs");
+      await userEditAnItem(eggs, "Noodles");
+
+      expect(window.alert).toHaveBeenCalledWith("That item already exists!");
+      expect(itemsList.children.item(0)).toHaveTextContent("Eggs");
+    });
+
+    test("Should allow an item to be edited to the same current value (no-op)", async () => {
+      jest.spyOn(window, "alert").mockImplementation(() => {});
+      await userAddAnItem("Eggs");
+
+      const eggs = within(itemsList).getByText("Eggs");
+      await userEditAnItem(eggs, "Eggs");
+
+      expect(window.alert).not.toHaveBeenCalled();
+      expect(itemsList.children.item(0)).toHaveTextContent("Eggs");
+    });
   });
 });
 
