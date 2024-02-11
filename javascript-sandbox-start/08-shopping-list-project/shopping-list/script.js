@@ -68,6 +68,7 @@ function runMyJavascript() {
     }
     itemToEdit.firstChild.textContent = newItem;
     itemToEdit.classList.remove(EDIT_MODE_CLASS);
+    itemInput.value = "";
 
     const itemsInStorage = getItemsFromLocalStorage();
     let indexToReplace = itemsInStorage.indexOf(oldItem);

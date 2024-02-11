@@ -366,6 +366,11 @@ describe("Editing items", () => {
       expect(formButton.firstElementChild.classList).not.toContain("fa-pen");
       expect(formButton.style.backgroundColor).toBe("rgb(51, 51, 51)");
     });
+
+    test("Should clear item input after user edits an item", () => {
+      const itemInput = screen.getByRole("textbox", {name: "Enter Item"});
+      expect(itemInput.value).toBe("");
+    });
   });
 
   test("Should add item to local storage even if it was corrupted", async () => {
