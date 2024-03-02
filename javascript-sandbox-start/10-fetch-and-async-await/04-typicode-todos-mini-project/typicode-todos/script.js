@@ -9,6 +9,9 @@ function runMyJavaScript() {
       todoData.forEach(todo => {
           const todoElement = document.createElement("div");
           todoElement.textContent = todo.title;
+          if (todo.completed) {
+            todoElement.className = "done";
+          }
           todoList.appendChild(todoElement);
       })
     });

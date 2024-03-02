@@ -100,6 +100,34 @@ describe("Initial page load", () => {
     expect(todoList).toHaveTextContent("et porro tempora");
     expect(todoList).toHaveTextContent("laboriosam mollitia et enim quasi adipisci quia provident illum");
   });
+
+  test("Should style completed todos as 'done'", async () => {
+    jest.spyOn(global, "fetch").mockResolvedValue(new Response(
+      JSON.stringify(
+        [
+            {
+              "userId": 1,
+              "id": 1,
+              "title": "delectus aut autem",
+              "completed": false
+            },
+            {
+            "userId": 1,
+            "id": 4,
+            "title": "et porro tempora",
+            "completed": true
+          }
+        ]
+      ),
+    ));
+
+    await loadPage();
+
+    const notCompletedTodo = await screen.findByText("delectus aut autem");
+    const completedTodo = await screen.findByText("et porro tempora");
+    expect(notCompletedTodo).not.toHaveClass("done");
+    expect(completedTodo).toHaveClass("done");
+  })
 });
 
 async function loadPage() {
