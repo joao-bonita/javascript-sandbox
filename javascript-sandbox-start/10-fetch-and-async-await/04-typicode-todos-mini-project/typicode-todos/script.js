@@ -8,6 +8,7 @@ function runMyJavaScript() {
     .then(todoData => {
       todoData.forEach(todo => {
           const todoElement = document.createElement("div");
+          todoElement.setAttribute("data-id", todo.id);
           todoElement.textContent = todo.title;
           if (todo.completed) {
             todoElement.className = "done";

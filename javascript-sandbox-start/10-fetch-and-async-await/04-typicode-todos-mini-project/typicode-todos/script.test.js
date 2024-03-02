@@ -81,9 +81,7 @@ beforeEach(async () => {
 
 describe("Initial page load", () => {
   test("Should display 5 of the existing todos returned by the Web API", async () => {
-    jest.spyOn(global, "fetch").mockResolvedValue(new Response(
-      JSON.stringify(getJsonDataFor5Todos()),
-    ));
+    mockSuccessfulResponse(jsonDataFor5Todos);
 
     await loadPage();
 
@@ -102,24 +100,22 @@ describe("Initial page load", () => {
   });
 
   test("Should style completed todos as 'done'", async () => {
-    jest.spyOn(global, "fetch").mockResolvedValue(new Response(
-      JSON.stringify(
-        [
-            {
-              "userId": 1,
-              "id": 1,
-              "title": "delectus aut autem",
-              "completed": false
-            },
-            {
-            "userId": 1,
-            "id": 4,
-            "title": "et porro tempora",
-            "completed": true
-          }
-        ]
-      ),
-    ));
+    mockSuccessfulResponse(
+      [
+        {
+          "userId": 1,
+          "id": 1,
+          "title": "delectus aut autem",
+          "completed": false
+        },
+        {
+          "userId": 1,
+          "id": 4,
+          "title": "et porro tempora",
+          "completed": true
+        }
+      ]
+    );
 
     await loadPage();
 
@@ -127,7 +123,25 @@ describe("Initial page load", () => {
     const completedTodo = await screen.findByText("et porro tempora");
     expect(notCompletedTodo).not.toHaveClass("done");
     expect(completedTodo).toHaveClass("done");
-  })
+  });
+
+  test("Should add an ID attribute to each loaded todo", async () => {
+    mockSuccessfulResponse(
+      [
+        {
+          "userId": 1,
+          "id": 1,
+          "title": "delectus aut autem",
+          "completed": false
+        }
+      ]
+    );
+
+    await loadPage();
+
+    const todo = await screen.findByText("delectus aut autem");
+    expect(todo).toHaveAttribute("data-id", "1");
+  });
 });
 
 async function loadPage() {
@@ -137,37 +151,39 @@ async function loadPage() {
   );
 }
 
-function getJsonDataFor5Todos() {
-  return [
-    {
-      "userId": 1,
-      "id": 1,
-      "title": "delectus aut autem",
-      "completed": false
-    },
-    {
-      "userId": 1,
-      "id": 2,
-      "title": "quis ut nam facilis et officia qui",
-      "completed": false
-    },
-    {
-      "userId": 1,
-      "id": 3,
-      "title": "fugiat veniam minus",
-      "completed": false
-    },
-    {
-      "userId": 1,
-      "id": 4,
-      "title": "et porro tempora",
-      "completed": true
-    },
-    {
-      "userId": 1,
-      "id": 5,
-      "title": "laboriosam mollitia et enim quasi adipisci quia provident illum",
-      "completed": false
-    }
-  ];
+function mockSuccessfulResponse(jsonDataObject) {
+  jest.spyOn(global, "fetch").mockResolvedValue(new Response(JSON.stringify(jsonDataObject)));
 }
+
+const jsonDataFor5Todos = [
+  {
+    "userId": 1,
+    "id": 1,
+    "title": "delectus aut autem",
+    "completed": false
+  },
+  {
+    "userId": 1,
+    "id": 2,
+    "title": "quis ut nam facilis et officia qui",
+    "completed": false
+  },
+  {
+    "userId": 1,
+    "id": 3,
+    "title": "fugiat veniam minus",
+    "completed": false
+  },
+  {
+    "userId": 1,
+    "id": 4,
+    "title": "et porro tempora",
+    "completed": true
+  },
+  {
+    "userId": 1,
+    "id": 5,
+    "title": "laboriosam mollitia et enim quasi adipisci quia provident illum",
+    "completed": false
+  }
+];
