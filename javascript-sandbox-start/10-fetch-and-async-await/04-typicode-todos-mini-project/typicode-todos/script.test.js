@@ -6,6 +6,7 @@ import "@testing-library/jest-dom";
 import {screen, waitFor} from "@testing-library/dom";
 import {loadHtmlAndScript} from "../../../testing/MoreTesting";
 import "whatwg-fetch";
+import {userEvent} from "@testing-library/user-event";
 
 const sideEffects = {
   document: {
@@ -141,6 +142,24 @@ describe("Initial page load", () => {
 
     const todo = await screen.findByText("delectus aut autem");
     expect(todo).toHaveAttribute("data-id", "1");
+  });
+});
+
+describe("When page is loaded", () => {
+
+  let user;
+
+  beforeEach(async () => {
+    user = userEvent.setup();
+    await loadPage();
+  });
+
+  test("Should add a todo when clicking on the Add button", async () => {
+    await user.type(screen.getByRole("textbox"), "New Todo!");
+    await user.click(screen.getByRole("button"));
+
+    const todoList = screen.getByTestId("todo-list");
+    expect(todoList).toHaveTextContent("New Todo!");
   });
 });
 
