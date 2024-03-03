@@ -153,46 +153,79 @@ describe("Page already loaded", () => {
 
   beforeEach(async () => {
     user = userEvent.setup();
-    fetchSpy
-      .mockResolvedValueOnce(new Response(JSON.stringify([])))
-      .mockResolvedValue(
-        new Response(JSON.stringify(
-          {
-            id: 101,
-            userId: 1,
-            title: "New Todo!",
-            completed: false,
-          })
-        ));
+    mockSuccessfulGetResponse(
+      [
+        {
+          "userId": 1,
+          "id": 1,
+          "title": "delectus aut autem",
+          "completed": false
+        }
+      ]
+    );
     await loadPage();
   });
 
-  test("Should create a todo on the server when clicking on the Add button", async () => {
-    await user.type(screen.getByRole("textbox"), "New Todo!");
-    await user.click(screen.getByRole("button"));
-
-    expect(fetchSpy).toHaveBeenNthCalledWith(2,
-      "https://jsonplaceholder.typicode.com/todos",
-      {
-        method: "POST",
-        body: JSON.stringify({
+  describe("Creating a new todo", () => {
+    beforeEach(() => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(
+        {
+          id: 101,
           userId: 1,
           title: "New Todo!",
-          completed: false
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
+          completed: false,
+        })
+      ));
+    });
+
+    test("Should create a todo on the server when clicking on the Add button", async () => {
+      await user.type(screen.getByRole("textbox"), "New Todo!");
+      await user.click(screen.getByRole("button"));
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(2,
+        "https://jsonplaceholder.typicode.com/todos",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            userId: 1,
+            title: "New Todo!",
+            completed: false
+          }),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          }
         }
-      }
-    )
+      )
+    });
+
+    test("Should add a todo to the page when clicking on the Add button", async () => {
+      await user.type(screen.getByRole("textbox"), "New Todo!");
+      await user.click(screen.getByRole("button"));
+
+      const newTodo = await screen.findByText("New Todo!");
+      expect(newTodo).toHaveAttribute("data-id", "101");
+    });
   });
 
-  test("Should add a todo to the page when clicking on the Add button", async () => {
-    await user.type(screen.getByRole("textbox"), "New Todo!");
-    await user.click(screen.getByRole("button"));
+  describe("Toggling the completed status of an existing todo", () => {
+    test("Should update the completed status on the server when clicking on a todo", async () => {
+      const todo = await screen.findByText("delectus aut autem");
 
-    const newTodo = await screen.findByText("New Todo!");
-    expect(newTodo).toHaveAttribute("data-id", "101");
+      await user.click(todo);
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(2,
+        "https://jsonplaceholder.typicode.com/todos/1",
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            completed: true
+          }),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          }
+        }
+      );
+    });
   });
 });
 
@@ -204,7 +237,7 @@ async function loadPage() {
 }
 
 function mockSuccessfulGetResponse(jsonDataObject) {
-  fetchSpy.mockResolvedValue(new Response(JSON.stringify(jsonDataObject)));
+  fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify(jsonDataObject)));
 }
 
 const jsonDataFor5Todos = [
