@@ -8,6 +8,8 @@ import {loadHtmlAndScript} from "../../../testing/MoreTesting";
 import "whatwg-fetch";
 import {userEvent} from "@testing-library/user-event";
 
+let fetchSpy;
+
 const sideEffects = {
   document: {
     addEventListener: {
@@ -78,11 +80,12 @@ beforeEach(async () => {
   });
 
   jest.restoreAllMocks();
+  fetchSpy = jest.spyOn(global, "fetch");
 });
 
 describe("Initial page load", () => {
   test("Should display 5 of the existing todos returned by the Web API", async () => {
-    mockSuccessfulResponse(jsonDataFor5Todos);
+    mockSuccessfulGetResponse(jsonDataFor5Todos);
 
     await loadPage();
 
@@ -101,7 +104,7 @@ describe("Initial page load", () => {
   });
 
   test("Should style completed todos as 'done'", async () => {
-    mockSuccessfulResponse(
+    mockSuccessfulGetResponse(
       [
         {
           "userId": 1,
@@ -127,7 +130,7 @@ describe("Initial page load", () => {
   });
 
   test("Should add an ID attribute to each loaded todo", async () => {
-    mockSuccessfulResponse(
+    mockSuccessfulGetResponse(
       [
         {
           "userId": 1,
@@ -145,21 +148,51 @@ describe("Initial page load", () => {
   });
 });
 
-describe("When page is loaded", () => {
-
+describe("Page already loaded", () => {
   let user;
 
   beforeEach(async () => {
     user = userEvent.setup();
+    fetchSpy
+      .mockResolvedValueOnce(new Response(JSON.stringify([])))
+      .mockResolvedValue(
+        new Response(JSON.stringify(
+          {
+            id: 101,
+            userId: 1,
+            title: "New Todo!",
+            completed: false,
+          })
+        ));
     await loadPage();
   });
 
-  test("Should add a todo when clicking on the Add button", async () => {
+  test("Should create a todo on the server when clicking on the Add button", async () => {
     await user.type(screen.getByRole("textbox"), "New Todo!");
     await user.click(screen.getByRole("button"));
 
-    const todoList = screen.getByTestId("todo-list");
-    expect(todoList).toHaveTextContent("New Todo!");
+    expect(fetchSpy).toHaveBeenNthCalledWith(2,
+      "https://jsonplaceholder.typicode.com/todos",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          userId: 1,
+          title: "New Todo!",
+          completed: false
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        }
+      }
+    )
+  });
+
+  test("Should add a todo to the page when clicking on the Add button", async () => {
+    await user.type(screen.getByRole("textbox"), "New Todo!");
+    await user.click(screen.getByRole("button"));
+
+    const newTodo = await screen.findByText("New Todo!");
+    expect(newTodo).toHaveAttribute("data-id", "101");
   });
 });
 
@@ -170,8 +203,8 @@ async function loadPage() {
   );
 }
 
-function mockSuccessfulResponse(jsonDataObject) {
-  jest.spyOn(global, "fetch").mockResolvedValue(new Response(JSON.stringify(jsonDataObject)));
+function mockSuccessfulGetResponse(jsonDataObject) {
+  fetchSpy.mockResolvedValue(new Response(JSON.stringify(jsonDataObject)));
 }
 
 const jsonDataFor5Todos = [
