@@ -32,6 +32,9 @@ function runMyJavaScript() {
   }
 
   function onClickTodo(event) {
+    if (!isTodoElement(event.target)) {
+      return;
+    }
     const todoElement = event.target;
     updateTodo(
       todoElement.getAttribute("data-id"),
@@ -44,6 +47,10 @@ function runMyJavaScript() {
           todoElement.classList.remove(CLASS_DONE);
         }
     });
+
+    function isTodoElement(target) {
+      return target.hasAttribute("data-id");
+    }
   }
 
   function getTodos(limit) {

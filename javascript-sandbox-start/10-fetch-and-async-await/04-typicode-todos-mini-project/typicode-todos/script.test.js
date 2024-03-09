@@ -292,6 +292,19 @@ describe("Page already loaded", () => {
 
       expect(incompleteTodo).not.toHaveClass("done");
     });
+
+    test("Should not toggle the whole todo list if the list is clicked on", async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(
+        {
+          completed: true,
+        })
+      ));
+
+      const todoList = screen.getByTestId("todo-list");
+      await user.click(todoList);
+
+      expect(todoList).not.toHaveClass("done");
+    });
   });
 });
 
