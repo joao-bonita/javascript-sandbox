@@ -32,11 +32,18 @@ function runMyJavaScript() {
   }
 
   function onClickTodo(event) {
+    const todoElement = event.target;
     updateTodo(
-      event.target.getAttribute("data-id"),
+      todoElement.getAttribute("data-id"),
       {
-        completed: !event.target.classList.contains(CLASS_DONE),
-      }).then(_todo => event.target.classList.add(CLASS_DONE));
+        completed: !todoElement.classList.contains(CLASS_DONE),
+      }).then(todo => {
+        if (todo.completed) {
+          todoElement.classList.add(CLASS_DONE);
+        } else {
+          todoElement.classList.remove(CLASS_DONE);
+        }
+    });
   }
 
   function getTodos(limit) {

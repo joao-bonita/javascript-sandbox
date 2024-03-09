@@ -160,7 +160,13 @@ describe("Page already loaded", () => {
           "id": 1,
           "title": "delectus aut autem",
           "completed": false
-        }
+        },
+        {
+          "userId": 1,
+          "id": 2,
+          "title": "quis ut nam facilis et officia qui",
+          "completed": true
+        },
       ]
     );
     await loadPage();
@@ -208,10 +214,10 @@ describe("Page already loaded", () => {
   });
 
   describe("Toggling the completed status of an existing todo", () => {
-    test("Should update the completed status on the server when clicking on a todo", async () => {
-      const todo = await screen.findByText("delectus aut autem");
+    test("Should toggle the status on the server when toggling an incomplete todo", async () => {
+      const incompleteTodo = await screen.findByText("delectus aut autem");
 
-      await user.click(todo);
+      await user.click(incompleteTodo);
 
       expect(fetchSpy).toHaveBeenNthCalledWith(2,
         "https://jsonplaceholder.typicode.com/todos/1",
@@ -227,7 +233,26 @@ describe("Page already loaded", () => {
       );
     });
 
-    test("Should display as completed on the page when clicking on a todo and server response is successful", async () => {
+    test("Should toggle the status on the server when toggling a complete todo", async () => {
+      const completeTodo = await screen.findByText("quis ut nam facilis et officia qui");
+
+      await user.click(completeTodo);
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(2,
+        "https://jsonplaceholder.typicode.com/todos/2",
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            completed: false
+          }),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          }
+        }
+      );
+    });
+
+    test("Should display as completed on the page when toggling an incomplete todo and the server response is successful", async () => {
       fetchSpy.mockResolvedValue(new Response(JSON.stringify(
         {
           id: 1,
@@ -241,6 +266,22 @@ describe("Page already loaded", () => {
       await user.click(todo);
 
       expect(todo).toHaveClass("done");
+    });
+
+    test("Should display as incomplete on the page when toggling a complete todo and the server response is successful", async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(
+        {
+          id: 1,
+          userId: 1,
+          title: "quis ut nam facilis et officia qui",
+          completed: false,
+        })
+      ));
+
+      const todo = await screen.findByText("quis ut nam facilis et officia qui");
+      await user.click(todo);
+
+      expect(todo).not.toHaveClass("done");
     });
   });
 });
