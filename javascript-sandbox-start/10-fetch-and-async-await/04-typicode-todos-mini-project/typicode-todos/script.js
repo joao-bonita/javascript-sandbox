@@ -37,7 +37,7 @@ function runMyJavaScript() {
     }
     const todoElement = event.target;
     updateTodo(
-      todoElement.getAttribute("data-id"),
+      todoElement.dataset.id,
       {
         completed: !todoElement.classList.contains(CLASS_DONE),
       }).then(todo => {
