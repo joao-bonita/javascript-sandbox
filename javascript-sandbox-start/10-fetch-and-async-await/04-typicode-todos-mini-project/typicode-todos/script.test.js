@@ -226,6 +226,22 @@ describe("Page already loaded", () => {
         }
       );
     });
+
+    test("Should display as completed on the page when clicking on a todo and server response is successful", async () => {
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify(
+        {
+          id: 1,
+          userId: 1,
+          title: "delectus aut autem",
+          completed: true,
+        })
+      ));
+
+      const todo = await screen.findByText("delectus aut autem");
+      await user.click(todo);
+
+      expect(todo).toHaveClass("done");
+    });
   });
 });
 

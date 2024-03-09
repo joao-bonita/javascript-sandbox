@@ -1,4 +1,5 @@
 function runMyJavaScript() {
+  const CLASS_DONE = "done";
   const todoList = document.getElementById("todo-list");
   const form = document.getElementById("todo-form");
   const baseUrl = new URL("todos", "https://jsonplaceholder.typicode.com").toString();
@@ -25,7 +26,7 @@ function runMyJavaScript() {
     todoElement.setAttribute("data-id", todo.id);
     todoElement.textContent = todo.title;
     if (todo.completed) {
-      todoElement.className = "done";
+      todoElement.classList.add(CLASS_DONE);
     }
     todoList.appendChild(todoElement);
   }
@@ -34,8 +35,8 @@ function runMyJavaScript() {
     updateTodo(
       event.target.getAttribute("data-id"),
       {
-        completed: !event.target.classList.contains("done"),
-      });
+        completed: !event.target.classList.contains(CLASS_DONE),
+      }).then(_todo => event.target.classList.add(CLASS_DONE));
   }
 
   function getTodos(limit) {
@@ -57,14 +58,15 @@ function runMyJavaScript() {
   }
 
   function updateTodo(id, patch) {
-    fetch(new URL(`${baseUrl}/${id}`).toString(),
+    return fetch(new URL(`${baseUrl}/${id}`).toString(),
       {
         method: "PATCH",
         body: JSON.stringify(patch),
         headers: {
           "Content-type": "application/json; charset=UTF-8",
         }
-      });
+      })
+      .then(response => response.json());
   }
 }
 
