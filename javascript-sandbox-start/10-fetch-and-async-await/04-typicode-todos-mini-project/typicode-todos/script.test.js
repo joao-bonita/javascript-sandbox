@@ -283,6 +283,15 @@ describe("Page already loaded", () => {
 
       expect(todo).not.toHaveClass("done");
     });
+
+    test("Should not toggle the completed status on the page when toggling a todo but the server response is unsuccessful", async () => {
+      fetchSpy.mockResolvedValue(new Response("Internal Server Error", {status: 500}));
+
+      const incompleteTodo = await screen.findByText("delectus aut autem");
+      await user.click(incompleteTodo);
+
+      expect(incompleteTodo).not.toHaveClass("done");
+    });
   });
 });
 
