@@ -8,6 +8,7 @@ function runMyJavaScript() {
   function initialise() {
     form.addEventListener("submit", onSubmit);
     todoList.addEventListener("click", onClickTodo);
+    todoList.addEventListener("dblclick", onDoubleClickTodo);
     getTodos(5).then(todoData => todoData.forEach(todo => addTodoToPage(todo)));
   }
 
@@ -48,15 +49,27 @@ function runMyJavaScript() {
         }
     });
 
-    function isTodoElement(target) {
-      return target.hasAttribute("data-id");
+  }
+
+  function onDoubleClickTodo(event) {
+    if (!isTodoElement(event.target)) {
+      return;
     }
+    deleteTodo(event.target.dataset.id).then(response => {
+      if (response.ok) {
+        event.target.remove();
+      }
+    });
+  }
+
+  function isTodoElement(target) {
+    return target.hasAttribute("data-id");
   }
 
   function getTodos(limit) {
     const url = new URL(baseUrl);
     url.searchParams.append("_limit", limit);
-    return fetch(url.toString()).then(response => response.json())
+    return fetch(url.toString()).then(response => response.json());
   }
 
   function createTodo(newTodo) {
@@ -81,6 +94,13 @@ function runMyJavaScript() {
         }
       })
     .then(response => response.ok ? response.json() : {});
+  }
+
+  function deleteTodo(id) {
+    return fetch(new URL(`${baseUrl}/${id}`).toString(),
+      {
+        method: "DELETE"
+      });
   }
 }
 

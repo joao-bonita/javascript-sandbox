@@ -301,9 +301,52 @@ describe("Page already loaded", () => {
       ));
 
       const todoList = screen.getByTestId("todo-list");
+
       await user.click(todoList);
 
       expect(todoList).not.toHaveClass("done");
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Deleting a todo", () => {
+    test("Should delete a todo on the server when double-clicking on it", async () => {
+      const todo = await screen.findByText("delectus aut autem");
+
+      await user.dblClick(todo);
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(4,
+        "https://jsonplaceholder.typicode.com/todos/1",
+        {
+          method: "DELETE"
+        }
+      );
+    });
+
+    test("Should delete a todo from the page when double-clicking on it and the server response is successful", async () => {
+      fetchSpy.mockImplementation(() => Promise.resolve(new Response(JSON.stringify({}))));
+
+      await user.dblClick(await screen.findByText("delectus aut autem"));
+
+      expect(screen.queryByText("delectus aut autem")).toBeNull();
+    });
+
+    test("Should not delete a todo from the page when double-clicking on it but the server response is unsuccessful", async () => {
+      fetchSpy.mockImplementation(() => Promise.resolve(new Response("Internal Server Error", {status: 500})));
+
+      await user.dblClick(await screen.findByText("delectus aut autem"));
+
+      expect(screen.queryByText("delectus aut autem")).not.toBeNull();
+    });
+
+    test("Should not delete the whole todo list if it is double-clicked on", async () => {
+      fetchSpy.mockImplementation(() => Promise.resolve(new Response(JSON.stringify({}))));
+
+      const todoList = screen.getByTestId("todo-list");
+      await user.dblClick(todoList);
+
+      expect(todoList).toBeInTheDocument();
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
   });
 });
