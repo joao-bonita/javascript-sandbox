@@ -80,7 +80,7 @@ beforeEach(async () => {
   });
 
   jest.restoreAllMocks();
-  fetchSpy = jest.spyOn(global, "fetch");
+  fetchSpy = jest.spyOn(global, "fetch").mockImplementation(() => {});
 });
 
 describe("Initial page load", () => {
@@ -215,8 +215,9 @@ describe("Page already loaded", () => {
 
   describe("Toggling the completed status of an existing todo", () => {
     test("Should toggle the status on the server when toggling an incomplete todo", async () => {
-      const incompleteTodo = await screen.findByText("delectus aut autem");
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify({})));
 
+      const incompleteTodo = await screen.findByText("delectus aut autem");
       await user.click(incompleteTodo);
 
       expect(fetchSpy).toHaveBeenNthCalledWith(2,
@@ -234,8 +235,9 @@ describe("Page already loaded", () => {
     });
 
     test("Should toggle the status on the server when toggling a complete todo", async () => {
-      const completeTodo = await screen.findByText("quis ut nam facilis et officia qui");
+      fetchSpy.mockResolvedValue(new Response(JSON.stringify({})));
 
+      const completeTodo = await screen.findByText("quis ut nam facilis et officia qui");
       await user.click(completeTodo);
 
       expect(fetchSpy).toHaveBeenNthCalledWith(2,
@@ -311,8 +313,9 @@ describe("Page already loaded", () => {
 
   describe("Deleting a todo", () => {
     test("Should delete a todo on the server when double-clicking on it", async () => {
-      const todo = await screen.findByText("delectus aut autem");
+      fetchSpy.mockImplementation(() => Promise.resolve(new Response(JSON.stringify({}))));
 
+      const todo = await screen.findByText("delectus aut autem");
       await user.dblClick(todo);
 
       expect(fetchSpy).toHaveBeenNthCalledWith(4,
