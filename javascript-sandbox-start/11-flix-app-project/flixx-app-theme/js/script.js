@@ -1,5 +1,27 @@
+const {THEMOVIEDB_BEARER_TOKEN} = require("./secrets");
+
 function initialise() {
   highlightActiveLink();
+}
+
+async function getPopularMovies() {
+  return await doGetPopularMovies(THEMOVIEDB_BEARER_TOKEN);
+}
+
+async function doGetPopularMovies(bearerToken) {
+  const url = new URL("/3/movie/popular", "https://api.themoviedb.org");
+  url.searchParams.append("language", "en-GB");
+  url.searchParams.append("page", "1");
+  url.searchParams.append("region", "GB");
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      accept: "application/json",
+      Authorization: `Bearer ${bearerToken}`
+    }
+  });
+  const data = await response.json();
+  return data.results;
 }
 
 function highlightActiveLink() {
@@ -19,5 +41,6 @@ function getCurrentLocalPage(locationPathname) {
 document.addEventListener("DOMContentLoaded", initialise);
 
 module.exports = {
-  getCurrentLocalPage
+  getCurrentLocalPage,
+  doGetPopularMovies,
 }

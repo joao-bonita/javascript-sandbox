@@ -4,3 +4,4 @@ node_modules
 .idea
 package-lock.json
 /coverage/
+/javascript-sandbox-start/11-flix-app-project/flixx-app-theme/js/secrets.js
