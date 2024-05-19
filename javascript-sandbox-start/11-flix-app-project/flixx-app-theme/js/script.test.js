@@ -3,7 +3,7 @@
  */
 
 import "whatwg-fetch";
-const { getCurrentLocalPage, doGetPopularMovies} = require("./script");
+const { getLocalPage, doGetPopularMovies} = require("./script");
 
 let fetchSpy;
 
@@ -30,7 +30,7 @@ test.each([
     localPage: ""
   }
 ])("should return '$localPage' when getCurrentLocalPage('$locationPathname') is invoked", ({locationPathname, localPage}) => {
-  expect(getCurrentLocalPage(locationPathname)).toBe(localPage);
+  expect(getLocalPage(locationPathname)).toBe(localPage);
 });
 
 describe("doGetPopularMovies", () => {
