@@ -3,7 +3,7 @@
  */
 
 import "whatwg-fetch";
-const { getLocalPage, doGetPopularMovies} = require("./script");
+const { getLocalPage, doFetchPopularMovies} = require("./script");
 
 let fetchSpy;
 
@@ -39,7 +39,7 @@ describe("doGetPopularMovies", () => {
   });
 
   test("doGetPopularMovies should call the correct Web API", async () => {
-    await doGetPopularMovies("bearer_token");
+    await doFetchPopularMovies("bearer_token");
 
     expect(fetchSpy).toHaveBeenCalledWith(
       "https://api.themoviedb.org/3/movie/popular?language=en-GB&page=1&region=GB",
@@ -53,7 +53,7 @@ describe("doGetPopularMovies", () => {
   });
 
   test("doGetPopularMovies should return the list of popular movies", async () => {
-    const movies = await doGetPopularMovies("bearer_token");
+    const movies = await doFetchPopularMovies("bearer_token");
 
     expect(movies).toStrictEqual([
       {

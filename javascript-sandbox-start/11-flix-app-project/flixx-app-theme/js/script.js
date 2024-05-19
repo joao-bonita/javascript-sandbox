@@ -14,7 +14,7 @@ function initialise() {
 
 async function displayPopularMovies() {
   const popularMoviesGrid = document.getElementById("popular-movies");
-  const popularMovies = await getPopularMovies();
+  const popularMovies = await fetchPopularMovies();
 
   popularMovies.forEach(movie => {
     const movieCard = document.createElement("div");
@@ -60,11 +60,11 @@ async function displayPopularMovies() {
   }
 }
 
-async function getPopularMovies() {
-  return await doGetPopularMovies(THEMOVIEDB_BEARER_TOKEN);
+async function fetchPopularMovies() {
+  return await doFetchPopularMovies(THEMOVIEDB_BEARER_TOKEN);
 }
 
-async function doGetPopularMovies(bearerToken) {
+async function doFetchPopularMovies(bearerToken) {
   const url = new URL("/3/movie/popular", "https://api.themoviedb.org");
   url.searchParams.append("language", BRITISH_ENGLISH);
   url.searchParams.append("page", "1");
@@ -102,5 +102,5 @@ document.addEventListener("DOMContentLoaded", initialise);
 
 module.exports = {
   getLocalPage,
-  doGetPopularMovies,
+  doFetchPopularMovies,
 }
