@@ -6,11 +6,10 @@ function initialise() {
   switch (getCurrentLocalPage()) {
     case "":
     case "index.html":
-      displayPopularMovies();
+      spinWhile(displayPopularMovies);
       break;
   }
 }
-
 
 async function displayPopularMovies() {
   const popularMoviesGrid = document.getElementById("popular-movies");
@@ -96,6 +95,33 @@ function getCurrentLocalPage() {
 
 function getLocalPage(locationPathname) {
   return locationPathname.substring(locationPathname.lastIndexOf("/") + 1);
+}
+
+async function spinWhile(task) {
+  showSpinner();
+  try {
+    await task();
+  } finally {
+    hideSpinner();
+  }
+}
+
+function showSpinner() {
+  toggleSpinner(true);
+}
+
+function hideSpinner() {
+  toggleSpinner(false);
+}
+
+function toggleSpinner(show) {
+  const showClass = "show";
+  const spinnerClasses = document.querySelector(".spinner").classList;
+  if (show) {
+    spinnerClasses.add(showClass);
+  } else {
+    spinnerClasses.remove(showClass);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", initialise);
