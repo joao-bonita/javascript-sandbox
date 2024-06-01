@@ -15,84 +15,63 @@ function initialise() {
 }
 
 async function displayPopularMovies() {
-  const popularMoviesGrid = document.getElementById("popular-movies");
-  const popularMovies = await fetchPopularMovies();
+  await displayPopularProductions({
+    fetchPopularProductions: fetchPopularMovies,
+    gridId: "popular-movies",
+    detailsPath: "movie-details.html",
+    nameKey: "title",
+    releaseDateKey: "release_date"
+  });
+}
 
-  popularMovies.forEach(movie => {
-    const movieCard = document.createElement("div");
-    movieCard.classList.add("card");
+async function displayPopularTvShows() {
+  await displayPopularProductions({
+    fetchPopularProductions: fetchPopularTvShows,
+    gridId: "popular-shows",
+    detailsPath: "tv-details.html",
+    nameKey: "name",
+    releaseDateKey: "first_air_date"
+  });
+}
+
+async function displayPopularProductions(parameters) {
+  const popularGrid = document.getElementById(parameters.gridId);
+  const popularProductions = await parameters.fetchPopularProductions();
+
+  popularProductions.forEach(production => {
+    const titleCard = document.createElement("div");
+    titleCard.classList.add("card");
 
     const detailsLink = document.createElement("a");
-    detailsLink.href = `movie-details.html?id=${movie.id}`;
+    detailsLink.href = `${parameters.detailsPath}?id=${production.id}`;
 
     const image = document.createElement("img");
-    image.src = new URL(`/t/p/w500${movie.poster_path}`, "https://image.tmdb.org").toString();
+    image.src = new URL(`/t/p/w500${production.poster_path}`, "https://image.tmdb.org").toString();
     image.classList.add("card-img-top");
-    image.alt = movie.title;
+    image.alt = production[parameters.nameKey];
 
     detailsLink.appendChild(image);
-    movieCard.appendChild(detailsLink);
+    titleCard.appendChild(detailsLink);
 
     const cardBody = document.createElement("div");
     cardBody.classList.add("card-body");
 
     const cardTitle = document.createElement("h5");
     cardTitle.classList.add("card-title");
-    cardTitle.textContent = movie.title;
+    cardTitle.textContent = production.title;
 
     const cardText = document.createElement("p");
     cardText.classList.add("card-text");
     const releaseDate = document.createElement("small");
     releaseDate.classList.add("text-muted");
-    releaseDate.textContent = `Release: ${getDisplayDate(movie.release_date)}`;
+    releaseDate.textContent = `Release: ${getDisplayDate(production[parameters.releaseDateKey])}`;
 
     cardText.appendChild(releaseDate);
     cardBody.appendChild(cardTitle);
     cardBody.appendChild(cardText);
-    movieCard.appendChild(cardBody);
+    titleCard.appendChild(cardBody);
 
-    popularMoviesGrid.appendChild(movieCard);
-  });
-}
-
-async function displayPopularTvShows() {
-  const popularShowsGrid = document.getElementById("popular-shows");
-  const popularTvShows = await fetchPopularTvShows();
-
-  popularTvShows.forEach(show => {
-    const showCard = document.createElement("div");
-    showCard.classList.add("card");
-
-    const detailsLink = document.createElement("a");
-    detailsLink.href = `tv-details.html?id=${show.id}`;
-
-    const image = document.createElement("img");
-    image.src = new URL(`/t/p/w500${show.poster_path}`, "https://image.tmdb.org").toString();
-    image.classList.add("card-img-top");
-    image.alt = show.name;
-
-    detailsLink.appendChild(image);
-    showCard.appendChild(detailsLink);
-
-    const cardBody = document.createElement("div");
-    cardBody.classList.add("card-body");
-
-    const cardTitle = document.createElement("h5");
-    cardTitle.classList.add("card-title");
-    cardTitle.textContent = show.name;
-
-    const cardText = document.createElement("p");
-    cardText.classList.add("card-text");
-    const airDate = document.createElement("small");
-    airDate.classList.add("text-muted");
-    airDate.textContent = `Release: ${getDisplayDate(show.first_air_date)}`;
-
-    cardText.appendChild(airDate);
-    cardBody.appendChild(cardTitle);
-    cardBody.appendChild(cardText);
-    showCard.appendChild(cardBody);
-
-    popularShowsGrid.appendChild(showCard);
+    popularGrid.appendChild(titleCard);
   });
 }
 
