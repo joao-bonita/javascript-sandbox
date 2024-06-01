@@ -8,6 +8,9 @@ function initialise() {
     case "index.html":
       spinWhile(displayPopularMovies);
       break;
+    case "shows.html":
+      spinWhile(displayPopularTvShows);
+      break;
   }
 }
 
@@ -50,13 +53,54 @@ async function displayPopularMovies() {
 
     popularMoviesGrid.appendChild(movieCard);
   });
+}
 
-  function getDisplayDate(date) {
-    return new Intl.DateTimeFormat(BRITISH_ENGLISH, {
-      dateStyle: "long",
-      timeZone: "UTC"
-    }).format(Date.parse(date));
-  }
+async function displayPopularTvShows() {
+  const popularShowsGrid = document.getElementById("popular-shows");
+  const popularTvShows = await fetchPopularTvShows();
+
+  popularTvShows.forEach(show => {
+    const showCard = document.createElement("div");
+    showCard.classList.add("card");
+
+    const detailsLink = document.createElement("a");
+    detailsLink.href = `tv-details.html?id=${show.id}`;
+
+    const image = document.createElement("img");
+    image.src = new URL(`/t/p/w500${show.poster_path}`, "https://image.tmdb.org").toString();
+    image.classList.add("card-img-top");
+    image.alt = show.name;
+
+    detailsLink.appendChild(image);
+    showCard.appendChild(detailsLink);
+
+    const cardBody = document.createElement("div");
+    cardBody.classList.add("card-body");
+
+    const cardTitle = document.createElement("h5");
+    cardTitle.classList.add("card-title");
+    cardTitle.textContent = show.name;
+
+    const cardText = document.createElement("p");
+    cardText.classList.add("card-text");
+    const airDate = document.createElement("small");
+    airDate.classList.add("text-muted");
+    airDate.textContent = `Release: ${getDisplayDate(show.first_air_date)}`;
+
+    cardText.appendChild(airDate);
+    cardBody.appendChild(cardTitle);
+    cardBody.appendChild(cardText);
+    showCard.appendChild(cardBody);
+
+    popularShowsGrid.appendChild(showCard);
+  });
+}
+
+function getDisplayDate(date) {
+  return new Intl.DateTimeFormat(BRITISH_ENGLISH, {
+    dateStyle: "long",
+    timeZone: "UTC"
+  }).format(Date.parse(date));
 }
 
 async function fetchPopularMovies() {
@@ -64,11 +108,29 @@ async function fetchPopularMovies() {
 }
 
 async function doFetchPopularMovies(bearerToken) {
-  const url = new URL("/3/movie/popular", "https://api.themoviedb.org");
-  url.searchParams.append("language", BRITISH_ENGLISH);
-  url.searchParams.append("page", "1");
-  url.searchParams.append("region", "GB");
+  return await doFetchResults(bearerToken, "/3/movie/popular", {
+    language: BRITISH_ENGLISH,
+    page: "1",
+    region: "GB"
+  });
+}
 
+async function fetchPopularTvShows() {
+  return await doFetchPopularTvShows(THEMOVIEDB_BEARER_TOKEN);
+}
+
+async function doFetchPopularTvShows(bearerToken) {
+  return await doFetchResults(bearerToken, "/3/tv/popular", {
+    language: BRITISH_ENGLISH,
+    page: "1"
+  });
+}
+
+async function doFetchResults(bearerToken, relativeUrl, parameters) {
+  const url = new URL(relativeUrl, "https://api.themoviedb.org");
+  for (const parameter in parameters) {
+    url.searchParams.append(parameter, parameters[parameter]);
+  }
   const response = await fetch(url.toString(), {
     headers: {
       accept: "application/json",
@@ -129,4 +191,5 @@ document.addEventListener("DOMContentLoaded", initialise);
 module.exports = {
   getLocalPage,
   doFetchPopularMovies,
+  doFetchPopularTvShows,
 }
