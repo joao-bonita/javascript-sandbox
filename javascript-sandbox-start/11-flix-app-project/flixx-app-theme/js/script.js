@@ -86,6 +86,7 @@ async function displayMovieDetails() {
 
   const imageDiv = document.createElement("div");
   const image = document.createElement("img");
+  // TODO extract into image-fetching function
   image.src = new URL(`/t/p/w500${movieDetails.poster_path}`, "https://image.tmdb.org").toString();
   image.className = "card-img-top";
   image.alt = movieDetails.title;
@@ -97,7 +98,7 @@ async function displayMovieDetails() {
 
   const starsParagraph = document.createElement("p");
   const starsText = document.createElement("i");
-  starsText.textContent = `${movieDetails.vote_average} / 10`; // TODO round vote average
+  starsText.textContent = `${Number(movieDetails.vote_average).toFixed(0)} / 10`;
   starsText.classList.add("fas", "fa-star", "text-primary");
   starsParagraph.appendChild(starsText);
 
@@ -142,6 +143,7 @@ async function displayMovieDetails() {
   infoHeading.textContent = "Movie Info";
 
   const infoList = document.createElement("ul");
+  // TODO format details correctly
   infoList.appendChild(createMovieInfoItemElement("Budget", movieDetails.budget));
   infoList.appendChild(createMovieInfoItemElement("Revenue", movieDetails.revenue));
   infoList.appendChild(createMovieInfoItemElement("Runtime", movieDetails.runtime));
