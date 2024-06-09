@@ -3,7 +3,12 @@
  */
 
 import "whatwg-fetch";
-const { getLocalPage, doFetchPopularMovies, doFetchPopularTvShows} = require("./script");
+const {
+  getLocalPage,
+  doFetchPopularMovies,
+  doFetchPopularTvShows,
+  doFetchMovieDetails,
+  getMovieIdFromLocation} = require("./script");
 
 let fetchSpy;
 
@@ -111,6 +116,82 @@ describe("doFetchPopularTvShows", () => {
   });
 });
 
+describe("doFetchMovieDetails", () => {
+  beforeEach(() => {
+    mockMovieDetailsResponse();
+  });
+
+  test("should call the correct Web API", () => {
+    doFetchMovieDetails("bearer_token", 42);
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "https://api.themoviedb.org/3/movie/42?language=en-GB",
+      {
+        headers: {
+          accept: "application/json",
+          Authorization: "Bearer bearer_token"
+        }
+      }
+    );
+  });
+
+  test("should return the movie details", async () => {
+    const movieDetails = await doFetchMovieDetails("bearer_token", 42);
+
+    expect(movieDetails).toEqual({
+      "backdrop_path": "/nb3xI8XI3w4pMVZ38VijbsyBqP4.jpg",
+            "budget": 100000000,
+          "genres": [
+            {
+              "id": 18,
+              "name": "Drama"
+            } ,
+            {
+              "id": 36,
+              "name": "History"
+            }
+          ],
+          "homepage": "http://www.oppenheimermovie.com",
+          "id": 872585,
+          "overview": "The story of J. Robert Oppenheimer\'s role in the development of the atomic bomb during World War II.",
+          "poster_path": "/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+          "production_companies": [
+            {
+              "id": 9996,
+              "name": "Syncopy"
+            },
+            {
+              "id": 33,
+              "name": "Universal Pictures"
+            },
+            {
+              "id": 507,
+              "name": "Atlas Entertainment"
+            }
+          ],
+          "release_date": "2023-07-19",
+          "revenue": 952000000,
+          "runtime": 181,
+          "status": "Released",
+          "tagline": "The world forever changes.",
+          "title": "Oppenheimer",
+          "vote_average": 8.097
+        });
+  });
+});
+
+describe("getMovieIdFromLocation", () => {
+  test("should get movie ID from Location", () => {
+    const location = {
+      toString: function() {
+        return "http://localhost:63342/javascript-sandbox/11-flix-app-project/movie-details.html?id=42";
+      }
+    }
+    const movieId = getMovieIdFromLocation(location);
+    expect(movieId).toBe(42);
+  });
+});
+
 function mockPopularMoviesResponse() {
   fetchSpy.mockResolvedValue(new Response('{' +
     '  "page": 1,' +
@@ -152,6 +233,48 @@ function mockPopularTvShowsResponse() {
     '  ],' +
     '  "total_pages": 8644,' +
     '  "total_results": 172880' +
+    '}'));
+}
+
+function mockMovieDetailsResponse() {
+  fetchSpy.mockResolvedValue(new Response('{' +
+    '  "backdrop_path": "/nb3xI8XI3w4pMVZ38VijbsyBqP4.jpg",' +
+    '  "budget": 100000000,' +
+    '  "genres": [' +
+    '    {' +
+    '      "id": 18,' +
+    '      "name": "Drama"' +
+    '    },' +
+    '    {' +
+    '      "id": 36,' +
+    '      "name": "History"' +
+    '    }' +
+    '  ],' +
+    '  "homepage": "http://www.oppenheimermovie.com",' +
+    '  "id": 872585,' +
+    '  "overview": "The story of J. Robert Oppenheimer\'s role in the development of the atomic bomb during World War II.",' +
+    '  "poster_path": "/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",' +
+    '  "production_companies": [' +
+    '    {' +
+    '      "id": 9996,' +
+    '      "name": "Syncopy"' +
+    '    },' +
+    '    {' +
+    '      "id": 33,' +
+    '      "name": "Universal Pictures"' +
+    '    },' +
+    '    {' +
+    '      "id": 507,' +
+    '      "name": "Atlas Entertainment"' +
+    '    }' +
+    '  ],' +
+    '  "release_date": "2023-07-19",' +
+    '  "revenue": 952000000,' +
+    '  "runtime": 181,' +
+    '  "status": "Released",' +
+    '  "tagline": "The world forever changes.",' +
+    '  "title": "Oppenheimer",' +
+    '  "vote_average": 8.097' +
     '}'));
 }
 

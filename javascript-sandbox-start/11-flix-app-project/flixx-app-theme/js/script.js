@@ -11,6 +11,9 @@ function initialise() {
     case "shows.html":
       spinWhile(displayPopularTvShows);
       break;
+    case "movie-details.html":
+      spinWhile(displayMovieDetails());
+      break;
   }
 }
 
@@ -75,6 +78,103 @@ async function displayPopularProductions(parameters) {
   });
 }
 
+async function displayMovieDetails() {
+  const movieDetails = await doFetchMovieDetails(THEMOVIEDB_BEARER_TOKEN, getCurrentMovieId());
+
+  const detailsTop = document.createElement("div");
+  detailsTop.className = "details-top";
+
+  const imageDiv = document.createElement("div");
+  const image = document.createElement("img");
+  image.src = new URL(`/t/p/w500${movieDetails.poster_path}`, "https://image.tmdb.org").toString();
+  image.className = "card-img-top";
+  image.alt = movieDetails.title;
+  imageDiv.appendChild(image);
+
+  const mainDetailsDiv = document.createElement("div");
+  const titleHeading = document.createElement("h2");
+  titleHeading.textContent = movieDetails.title;
+
+  const starsParagraph = document.createElement("p");
+  const starsText = document.createElement("i");
+  starsText.textContent = `${movieDetails.vote_average} / 10`; // TODO round vote average
+  starsText.classList.add("fas", "fa-star", "text-primary");
+  starsParagraph.appendChild(starsText);
+
+  const releaseDateParagraph = document.createElement("p");
+  releaseDateParagraph.className = "text-muted";
+  releaseDateParagraph.textContent = `Release Date: ${getDisplayDate(movieDetails.release_date)}`;
+
+  const overviewParagraph = document.createElement("p");
+  overviewParagraph.textContent = movieDetails.overview;
+
+  const genresHeading = document.createElement("h5");
+  genresHeading.textContent = "Genres";
+  const genresList = document.createElement("ul");
+  genresList.className = "list-group";
+  movieDetails.genres.forEach((genre) => {
+    const genreListItem = document.createElement("li");
+    genreListItem.textContent = genre.name;
+    genresList.appendChild(genreListItem);
+  });
+
+  const homepageLink = document.createElement("a");
+  homepageLink.href = movieDetails.homepage;
+  homepageLink.target = "_blank";
+  homepageLink.className = "btn";
+  homepageLink.textContent = "Visit Movie Homepage";
+
+  mainDetailsDiv.appendChild(titleHeading);
+  mainDetailsDiv.appendChild(starsParagraph);
+  mainDetailsDiv.appendChild(releaseDateParagraph);
+  mainDetailsDiv.appendChild(overviewParagraph);
+  mainDetailsDiv.appendChild(genresHeading);
+  mainDetailsDiv.appendChild(genresList);
+  mainDetailsDiv.appendChild(homepageLink);
+
+  detailsTop.appendChild(imageDiv);
+  detailsTop.appendChild(mainDetailsDiv);
+
+  const detailsBottom = document.createElement("div");
+  detailsBottom.className = "details-bottom";
+
+  const infoHeading = document.createElement("h2");
+  infoHeading.textContent = "Movie Info";
+
+  const infoList = document.createElement("ul");
+  infoList.appendChild(createMovieInfoItemElement("Budget", movieDetails.budget));
+  infoList.appendChild(createMovieInfoItemElement("Revenue", movieDetails.revenue));
+  infoList.appendChild(createMovieInfoItemElement("Runtime", movieDetails.runtime));
+  infoList.appendChild(createMovieInfoItemElement("Status", movieDetails.status));
+
+  const companiesHeading = document.createElement("h4");
+  companiesHeading.textContent = "Production Companies";
+  const companiesDiv = document.createElement("div");
+  companiesDiv.className = "list-group";
+  companiesDiv.textContent = movieDetails.production_companies
+      .map(details => details.name)
+      .join(", ");
+
+  detailsBottom.appendChild(infoHeading);
+  detailsBottom.appendChild(infoList);
+  detailsBottom.appendChild(companiesHeading);
+  detailsBottom.appendChild(companiesDiv);
+
+  const movieDetailsDiv = document.getElementById("movie-details");
+  movieDetailsDiv.appendChild(detailsTop);
+  movieDetailsDiv.appendChild(detailsBottom);
+
+  function createMovieInfoItemElement(name, value) {
+    const listItem = document.createElement("li");
+    const span = document.createElement("span");
+    span.className = "text-secondary";
+    span.textContent = name + ':';
+    listItem.appendChild(span);
+    listItem.appendChild(document.createTextNode(" " + value));
+    return listItem;
+  }
+}
+
 function getDisplayDate(date) {
   return new Intl.DateTimeFormat(BRITISH_ENGLISH, {
     dateStyle: "long",
@@ -87,11 +187,12 @@ async function fetchPopularMovies() {
 }
 
 async function doFetchPopularMovies(bearerToken) {
-  return await doFetchResults(bearerToken, "/3/movie/popular", {
+  const data = await doFetchApiData(bearerToken, "/3/movie/popular", {
     language: BRITISH_ENGLISH,
     page: "1",
     region: "GB"
   });
+  return data.results;
 }
 
 async function fetchPopularTvShows() {
@@ -99,13 +200,28 @@ async function fetchPopularTvShows() {
 }
 
 async function doFetchPopularTvShows(bearerToken) {
-  return await doFetchResults(bearerToken, "/3/tv/popular", {
+  const data = await doFetchApiData(bearerToken, "/3/tv/popular", {
     language: BRITISH_ENGLISH,
     page: "1"
   });
+  return data.results;
 }
 
-async function doFetchResults(bearerToken, relativeUrl, parameters) {
+async function doFetchMovieDetails(bearerToken, movieId) {
+  return await doFetchApiData(bearerToken, `/3/movie/${movieId}`, {
+    language: BRITISH_ENGLISH
+  });
+}
+
+function getCurrentMovieId() {
+  return getMovieIdFromLocation(window.location);
+}
+
+function getMovieIdFromLocation(location) {
+  return Number(new URL(location).searchParams.get("id"));
+}
+
+async function doFetchApiData(bearerToken, relativeUrl, parameters) {
   const url = new URL(relativeUrl, "https://api.themoviedb.org");
   for (const parameter in parameters) {
     url.searchParams.append(parameter, parameters[parameter]);
@@ -116,8 +232,7 @@ async function doFetchResults(bearerToken, relativeUrl, parameters) {
       Authorization: `Bearer ${bearerToken}`
     }
   });
-  const data = await response.json();
-  return data.results;
+  return await response.json();
 }
 
 function highlightActiveLink() {
@@ -171,4 +286,6 @@ module.exports = {
   getLocalPage,
   doFetchPopularMovies,
   doFetchPopularTvShows,
+  doFetchMovieDetails,
+  getMovieIdFromLocation
 }
