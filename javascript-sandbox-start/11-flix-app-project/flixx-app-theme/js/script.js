@@ -75,6 +75,19 @@ async function displayPopularProductions(parameters) {
 async function displayMovieDetails() {
   const movieDetails = await doFetchMovieDetails(THEMOVIEDB_BEARER_TOKEN, getCurrentMovieId());
 
+  const overlayDiv = document.createElement("div");
+  overlayDiv.style.backgroundImage = `url(${imageUrlFor(movieDetails.backdrop_path, "original")})`;
+  overlayDiv.style.backgroundSize = "cover";
+  overlayDiv.style.backgroundPosition = "center";
+  overlayDiv.style.backgroundRepeat = "no-repeat";
+  overlayDiv.style.height = "100vh";
+  overlayDiv.style.width = "100vw";
+  overlayDiv.style.position = "absolute";
+  overlayDiv.style.top = "0";
+  overlayDiv.style.left = "0";
+  overlayDiv.style.zIndex = "-1";
+  overlayDiv.style.opacity = "0.1";
+
   const detailsTop = document.createElement("div");
   detailsTop.className = "details-top";
 
@@ -88,7 +101,7 @@ async function displayMovieDetails() {
   const starsParagraph = document.createElement("p");
   const starsIcon = document.createElement("i");
   starsIcon.classList.add("fas", "fa-star", "text-primary");
-  const starsText= `${movieDetails.vote_average.toFixed(0)} / 10`;
+  const starsText= `${movieDetails.vote_average.toFixed(1)} / 10`;
   starsParagraph.appendChild(starsIcon);
   starsParagraph.appendChild(document.createTextNode(starsText));
 
@@ -152,6 +165,7 @@ async function displayMovieDetails() {
   detailsBottom.appendChild(companiesDiv);
 
   const movieDetailsDiv = document.getElementById("movie-details");
+  movieDetailsDiv.appendChild(overlayDiv);
   movieDetailsDiv.appendChild(detailsTop);
   movieDetailsDiv.appendChild(detailsBottom);
 
@@ -168,10 +182,14 @@ async function displayMovieDetails() {
 
 function createPosterImage(posterPath, altText) {
   const image = document.createElement("img");
-  image.src = new URL(`/t/p/w500${posterPath}`, "https://image.tmdb.org").toString();
+  image.src = imageUrlFor(posterPath, "w500").toString();
   image.classList.add("card-img-top");
   image.alt = altText;
   return image;
+}
+
+function imageUrlFor(pathToImage, size) {
+  return new URL(`/t/p/${size}${pathToImage}`, "https://image.tmdb.org");
 }
 
 function getDisplayDate(date) {
