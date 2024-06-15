@@ -3,12 +3,14 @@
  */
 
 import "whatwg-fetch";
+
 const {
   getLocalPage,
   doFetchPopularMovies,
   doFetchPopularTvShows,
   doFetchMovieDetails,
-  getMovieIdFromLocation} = require("./script");
+  getMovieIdFromLocation,
+  getDisplayUsDollars} = require("./script");
 
 let fetchSpy;
 
@@ -189,6 +191,12 @@ describe("getMovieIdFromLocation", () => {
     }
     const movieId = getMovieIdFromLocation(location);
     expect(movieId).toBe(42);
+  });
+});
+
+describe("getDisplayUsDollars", () => {
+  test("should format a US dollars amount in the English locale", () => {
+    expect(getDisplayUsDollars(2000000)).toBe("$2,000,000");
   });
 });
 

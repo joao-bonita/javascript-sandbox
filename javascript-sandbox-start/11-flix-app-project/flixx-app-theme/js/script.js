@@ -86,10 +86,11 @@ async function displayMovieDetails() {
   titleHeading.textContent = movieDetails.title;
 
   const starsParagraph = document.createElement("p");
-  const starsText = document.createElement("i");
-  starsText.textContent = `${Number(movieDetails.vote_average).toFixed(0)} / 10`;
-  starsText.classList.add("fas", "fa-star", "text-primary");
-  starsParagraph.appendChild(starsText);
+  const starsIcon = document.createElement("i");
+  starsIcon.classList.add("fas", "fa-star", "text-primary");
+  const starsText= `${movieDetails.vote_average.toFixed(0)} / 10`;
+  starsParagraph.appendChild(starsIcon);
+  starsParagraph.appendChild(document.createTextNode(starsText));
 
   const releaseDateParagraph = document.createElement("p");
   releaseDateParagraph.className = "text-muted";
@@ -132,10 +133,9 @@ async function displayMovieDetails() {
   infoHeading.textContent = "Movie Info";
 
   const infoList = document.createElement("ul");
-  // TODO format details correctly
-  infoList.appendChild(createMovieInfoItemElement("Budget", movieDetails.budget));
-  infoList.appendChild(createMovieInfoItemElement("Revenue", movieDetails.revenue));
-  infoList.appendChild(createMovieInfoItemElement("Runtime", movieDetails.runtime));
+  infoList.appendChild(createMovieInfoItemElement("Budget", getDisplayUsDollars(movieDetails.budget)));
+  infoList.appendChild(createMovieInfoItemElement("Revenue", getDisplayUsDollars(movieDetails.revenue)));
+  infoList.appendChild(createMovieInfoItemElement("Runtime", `${movieDetails.runtime} minutes`));
   infoList.appendChild(createMovieInfoItemElement("Status", movieDetails.status));
 
   const companiesHeading = document.createElement("h4");
@@ -179,6 +179,15 @@ function getDisplayDate(date) {
     dateStyle: "long",
     timeZone: "UTC"
   }).format(Date.parse(date));
+}
+
+function getDisplayUsDollars(usDollarAmount) {
+  return new Intl.NumberFormat(BRITISH_ENGLISH, {
+    style: "currency",
+    currency: "USD",
+    currencyDisplay: "narrowSymbol",
+    minimumFractionDigits: 0
+  }).format(usDollarAmount);
 }
 
 async function fetchPopularMovies() {
@@ -286,5 +295,6 @@ module.exports = {
   doFetchPopularMovies,
   doFetchPopularTvShows,
   doFetchMovieDetails,
-  getMovieIdFromLocation
+  getMovieIdFromLocation,
+  getDisplayUsDollars,
 }
