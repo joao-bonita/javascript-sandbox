@@ -47,13 +47,7 @@ async function displayPopularProductions(parameters) {
 
     const detailsLink = document.createElement("a");
     detailsLink.href = `${parameters.detailsPath}?id=${production.id}`;
-
-    const image = document.createElement("img");
-    image.src = new URL(`/t/p/w500${production.poster_path}`, "https://image.tmdb.org").toString();
-    image.classList.add("card-img-top");
-    image.alt = production[parameters.nameKey];
-
-    detailsLink.appendChild(image);
+    detailsLink.appendChild(createPosterImage(production.poster_path, production[parameters.nameKey]));
     titleCard.appendChild(detailsLink);
 
     const cardBody = document.createElement("div");
@@ -85,12 +79,7 @@ async function displayMovieDetails() {
   detailsTop.className = "details-top";
 
   const imageDiv = document.createElement("div");
-  const image = document.createElement("img");
-  // TODO extract into image-fetching function
-  image.src = new URL(`/t/p/w500${movieDetails.poster_path}`, "https://image.tmdb.org").toString();
-  image.className = "card-img-top";
-  image.alt = movieDetails.title;
-  imageDiv.appendChild(image);
+  imageDiv.appendChild(createPosterImage(movieDetails.poster_path, movieDetails.title));
 
   const mainDetailsDiv = document.createElement("div");
   const titleHeading = document.createElement("h2");
@@ -175,6 +164,14 @@ async function displayMovieDetails() {
     listItem.appendChild(document.createTextNode(" " + value));
     return listItem;
   }
+}
+
+function createPosterImage(posterPath, altText) {
+  const image = document.createElement("img");
+  image.src = new URL(`/t/p/w500${posterPath}`, "https://image.tmdb.org").toString();
+  image.classList.add("card-img-top");
+  image.alt = altText;
+  return image;
 }
 
 function getDisplayDate(date) {
