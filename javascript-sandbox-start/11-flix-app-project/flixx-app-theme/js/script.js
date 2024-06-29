@@ -239,6 +239,12 @@ async function doFetchMovieDetails(bearerToken, movieId) {
   });
 }
 
+async function doFetchTvShowDetails(bearerToken, tvShowId) {
+  return await doFetchApiData(bearerToken, `/3/tv/${tvShowId}`, {
+    language: BRITISH_ENGLISH
+  });
+}
+
 function getCurrentMovieId() {
   return getMovieIdFromLocation(window.location);
 }
@@ -313,6 +319,7 @@ module.exports = {
   doFetchPopularMovies,
   doFetchPopularTvShows,
   doFetchMovieDetails,
+  doFetchTvShowDetails,
   getMovieIdFromLocation,
   getDisplayUsDollars,
 }
