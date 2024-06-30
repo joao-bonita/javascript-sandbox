@@ -176,6 +176,19 @@ async function displayMovieDetails() {
 async function displayTvShowDetails() {
   const tvShowDetails = await doFetchTvShowDetails(THEMOVIEDB_BEARER_TOKEN, getCurrentProductionId());
 
+  const overlayDiv = document.createElement("div");
+  overlayDiv.style.backgroundImage = `url(${imageUrlFor(tvShowDetails.backdrop_path, "original")})`;
+  overlayDiv.style.backgroundSize = "cover";
+  overlayDiv.style.backgroundPosition = "center";
+  overlayDiv.style.backgroundRepeat = "no-repeat";
+  overlayDiv.style.height = "100vh";
+  overlayDiv.style.width = "100vw";
+  overlayDiv.style.position = "absolute";
+  overlayDiv.style.top = "0";
+  overlayDiv.style.left = "0";
+  overlayDiv.style.zIndex = "-1";
+  overlayDiv.style.opacity = "0.1";
+
   const detailsTop = document.createElement("div");
   detailsTop.className = "details-top";
 
@@ -252,6 +265,7 @@ async function displayTvShowDetails() {
   detailsBottom.appendChild(companiesDiv);
 
   const showDetailsDiv = document.getElementById("show-details");
+  showDetailsDiv.appendChild(overlayDiv);
   showDetailsDiv.appendChild(detailsTop);
   showDetailsDiv.appendChild(detailsBottom);
 }
