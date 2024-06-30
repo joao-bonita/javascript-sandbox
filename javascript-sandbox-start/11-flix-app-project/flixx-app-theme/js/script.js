@@ -12,7 +12,10 @@ function initialise() {
       spinWhile(displayPopularTvShows);
       break;
     case "movie-details.html":
-      spinWhile(displayMovieDetails());
+      spinWhile(displayMovieDetails);
+      break;
+    case "tv-details.html":
+      spinWhile(displayTvShowDetails)
       break;
   }
 }
@@ -73,7 +76,7 @@ async function displayPopularProductions(parameters) {
 }
 
 async function displayMovieDetails() {
-  const movieDetails = await doFetchMovieDetails(THEMOVIEDB_BEARER_TOKEN, getCurrentMovieId());
+  const movieDetails = await doFetchMovieDetails(THEMOVIEDB_BEARER_TOKEN, getCurrentProductionId());
 
   const overlayDiv = document.createElement("div");
   overlayDiv.style.backgroundImage = `url(${imageUrlFor(movieDetails.backdrop_path, "original")})`;
@@ -168,16 +171,89 @@ async function displayMovieDetails() {
   movieDetailsDiv.appendChild(overlayDiv);
   movieDetailsDiv.appendChild(detailsTop);
   movieDetailsDiv.appendChild(detailsBottom);
+}
 
-  function createMovieInfoItemElement(name, value) {
-    const listItem = document.createElement("li");
-    const span = document.createElement("span");
-    span.className = "text-secondary";
-    span.textContent = name + ':';
-    listItem.appendChild(span);
-    listItem.appendChild(document.createTextNode(" " + value));
-    return listItem;
-  }
+async function displayTvShowDetails() {
+  const tvShowDetails = await doFetchTvShowDetails(THEMOVIEDB_BEARER_TOKEN, getCurrentProductionId());
+
+  const detailsTop = document.createElement("div");
+  detailsTop.className = "details-top";
+
+  const imageDiv = document.createElement("div");
+  imageDiv.appendChild(createPosterImage(tvShowDetails.poster_path, tvShowDetails.name));
+
+  const mainDetailsDiv = document.createElement("div");
+  const titleHeading = document.createElement("h2");
+  titleHeading.textContent = tvShowDetails.name;
+
+  const starsParagraph = document.createElement("p");
+  const starsIcon = document.createElement("i");
+  starsIcon.classList.add("fas", "fa-star", "text-primary");
+  const starsText= `${tvShowDetails.vote_average.toFixed(1)} / 10`;
+  starsParagraph.appendChild(starsIcon);
+  starsParagraph.appendChild(document.createTextNode(starsText));
+
+  const releaseDateParagraph = document.createElement("p");
+  releaseDateParagraph.className = "text-muted";
+  releaseDateParagraph.textContent = `Release Date: ${getDisplayDate(tvShowDetails.first_air_date)}`;
+
+  const overviewParagraph = document.createElement("p");
+  overviewParagraph.textContent = tvShowDetails.overview;
+
+  const genresHeading = document.createElement("h5");
+  genresHeading.textContent = "Genres";
+  const genresList = document.createElement("ul");
+  genresList.className = "list-group";
+  tvShowDetails.genres.forEach((genre) => {
+    const genreListItem = document.createElement("li");
+    genreListItem.textContent = genre.name;
+    genresList.appendChild(genreListItem);
+  });
+
+  const homepageLink = document.createElement("a");
+  homepageLink.href = tvShowDetails.homepage;
+  homepageLink.target = "_blank";
+  homepageLink.className = "btn";
+  homepageLink.textContent = "Visit Show Homepage";
+
+  mainDetailsDiv.appendChild(titleHeading);
+  mainDetailsDiv.appendChild(starsParagraph);
+  mainDetailsDiv.appendChild(releaseDateParagraph);
+  mainDetailsDiv.appendChild(overviewParagraph);
+  mainDetailsDiv.appendChild(genresHeading);
+  mainDetailsDiv.appendChild(genresList);
+  mainDetailsDiv.appendChild(homepageLink);
+
+  detailsTop.appendChild(imageDiv);
+  detailsTop.appendChild(mainDetailsDiv);
+
+  const detailsBottom = document.createElement("div");
+  detailsBottom.className = "details-bottom";
+
+  const infoHeading = document.createElement("h2");
+  infoHeading.textContent = "Show Info";
+
+  const infoList = document.createElement("ul");
+  infoList.appendChild(createMovieInfoItemElement("Number Of Episodes", tvShowDetails.number_of_episodes));
+  infoList.appendChild(createMovieInfoItemElement("Last Episode To Air", "???"));
+  infoList.appendChild(createMovieInfoItemElement("Status", tvShowDetails.status));
+
+  const companiesHeading = document.createElement("h4");
+  companiesHeading.textContent = "Production Companies";
+  const companiesDiv = document.createElement("div");
+  companiesDiv.className = "list-group";
+  companiesDiv.textContent = tvShowDetails.production_companies
+  .map(details => details.name)
+  .join(", ");
+
+  detailsBottom.appendChild(infoHeading);
+  detailsBottom.appendChild(infoList);
+  detailsBottom.appendChild(companiesHeading);
+  detailsBottom.appendChild(companiesDiv);
+
+  const showDetailsDiv = document.getElementById("show-details");
+  showDetailsDiv.appendChild(detailsTop);
+  showDetailsDiv.appendChild(detailsBottom);
 }
 
 function createPosterImage(posterPath, altText) {
@@ -190,6 +266,16 @@ function createPosterImage(posterPath, altText) {
 
 function imageUrlFor(pathToImage, size) {
   return new URL(`/t/p/${size}${pathToImage}`, "https://image.tmdb.org");
+}
+
+function createMovieInfoItemElement(name, value) {
+  const listItem = document.createElement("li");
+  const span = document.createElement("span");
+  span.className = "text-secondary";
+  span.textContent = name + ':';
+  listItem.appendChild(span);
+  listItem.appendChild(document.createTextNode(" " + value));
+  return listItem;
 }
 
 function getDisplayDate(date) {
@@ -245,11 +331,11 @@ async function doFetchTvShowDetails(bearerToken, tvShowId) {
   });
 }
 
-function getCurrentMovieId() {
-  return getMovieIdFromLocation(window.location);
+function getCurrentProductionId() {
+  return getProductionIdFromLocation(window.location);
 }
 
-function getMovieIdFromLocation(location) {
+function getProductionIdFromLocation(location) {
   return Number(new URL(location).searchParams.get("id"));
 }
 
@@ -320,6 +406,6 @@ module.exports = {
   doFetchPopularTvShows,
   doFetchMovieDetails,
   doFetchTvShowDetails,
-  getMovieIdFromLocation,
+  getProductionIdFromLocation,
   getDisplayUsDollars,
 }

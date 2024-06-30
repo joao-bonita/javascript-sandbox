@@ -10,7 +10,7 @@ const {
   doFetchPopularTvShows,
   doFetchMovieDetails,
   doFetchTvShowDetails,
-  getMovieIdFromLocation,
+  getProductionIdFromLocation,
   getDisplayUsDollars} = require("./script");
 
 let fetchSpy;
@@ -141,14 +141,14 @@ describe("doFetchTvShowDetails", () => {
   });
 });
 
-describe("getMovieIdFromLocation", () => {
-  test("should get movie ID from Location", () => {
+describe("getProductionIdFromLocation", () => {
+  test("should get production ID from Location", () => {
     const location = {
       toString: function() {
         return "http://localhost:63342/javascript-sandbox/11-flix-app-project/movie-details.html?id=42";
       }
     }
-    const movieId = getMovieIdFromLocation(location);
+    const movieId = getProductionIdFromLocation(location);
     expect(movieId).toBe(42);
   });
 });
@@ -202,42 +202,42 @@ const testData = {
   movieDetails: {
     "backdrop_path": "/nb3xI8XI3w4pMVZ38VijbsyBqP4.jpg",
     "budget": 100000000,
-      "genres": [
-        {
-          "id": 18,
-          "name": "Drama"
-        },
-        {
-          "id": 36,
-          "name": "History"
-        }
-      ],
-      "homepage": "http://www.oppenheimermovie.com",
-      "id": 872585,
-      "overview": "The story of J. Robert Oppenheimer\'s role in the development of the atomic bomb during World War II.",
-      "poster_path": "/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
-      "production_companies": [
-        {
-          "id": 9996,
-          "name": "Syncopy"
-        },
-        {
-          "id": 33,
-          "name": "Universal Pictures"
-        },
-        {
-          "id": 507,
-          "name": "Atlas Entertainment"
-        }
-      ],
-      "release_date": "2023-07-19",
-      "revenue": 952000000,
-      "runtime": 181,
-      "status": "Released",
-      "tagline": "The world forever changes.",
-      "title": "Oppenheimer",
-      "vote_average": 8.097
-    },
+    "genres": [
+      {
+        "id": 18,
+        "name": "Drama"
+      },
+      {
+        "id": 36,
+        "name": "History"
+      }
+    ],
+    "homepage": "http://www.oppenheimermovie.com",
+    "id": 872585,
+    "overview": "The story of J. Robert Oppenheimer\'s role in the development of the atomic bomb during World War II.",
+    "poster_path": "/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+    "production_companies": [
+      {
+        "id": 9996,
+        "name": "Syncopy"
+      },
+      {
+        "id": 33,
+        "name": "Universal Pictures"
+      },
+      {
+        "id": 507,
+        "name": "Atlas Entertainment"
+      }
+    ],
+    "release_date": "2023-07-19",
+    "revenue": 952000000,
+    "runtime": 181,
+    "status": "Released",
+    "tagline": "The world forever changes.",
+    "title": "Oppenheimer",
+    "vote_average": 8.097
+  },
   popularTvShows: [
     {
       "id": 1416,
@@ -255,6 +255,12 @@ const testData = {
   tvShowDetails: {
     "backdrop_path": "/q8fmM50In8xGVW0iYoENPa71kAA.jpg",
     "first_air_date": "1964-01-01",
+    "genres": [
+      {
+        "id": 10764,
+        "name": "Reality"
+      }
+    ],
     "homepage": "http://www.bbc.co.uk/programmes/b00704hg",
     "id": 1636,
     "last_air_date": "2006-12-25",
