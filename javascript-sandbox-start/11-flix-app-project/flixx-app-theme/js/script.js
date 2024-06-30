@@ -75,11 +75,56 @@ async function displayPopularProductions(parameters) {
   });
 }
 
-async function displayMovieDetails() {
+async function displayMovieDetails(){
   const movieDetails = await doFetchMovieDetails(THEMOVIEDB_BEARER_TOKEN, getCurrentProductionId());
+  const productionDetails = {
+    backdrop_path: movieDetails.backdrop_path,
+    poster_path: movieDetails.poster_path,
+    title: movieDetails.title,
+    vote_average: movieDetails.vote_average,
+    release_date: movieDetails.release_date,
+    overview: movieDetails.overview,
+    genres: movieDetails.genres,
+    homepage: movieDetails.homepage,
+    info: {
+      "Budget": getDisplayUsDollars(movieDetails.budget),
+      "Revenue": getDisplayUsDollars(movieDetails.revenue),
+      "Runtime": `${movieDetails.runtime} minutes`,
+      "Status": movieDetails.status
+    },
+    production_type: "Movie",
+    production_companies: movieDetails.production_companies,
+    div_prefix: "movie"
+  };
+  await displayProductionDetails(productionDetails);
+}
 
+async function displayTvShowDetails() {
+  const tvShowDetails = await doFetchTvShowDetails(THEMOVIEDB_BEARER_TOKEN, getCurrentProductionId());
+  const productionDetails = {
+    backdrop_path: tvShowDetails.backdrop_path,
+    poster_path: tvShowDetails.poster_path,
+    title: tvShowDetails.name,
+    vote_average: tvShowDetails.vote_average,
+    release_date: tvShowDetails.first_air_date,
+    overview: tvShowDetails.overview,
+    genres: tvShowDetails.genres,
+    homepage: tvShowDetails.homepage,
+    info: {
+      "Number Of Episodes": tvShowDetails.number_of_episodes,
+      "Last Episode To Air": tvShowDetails.last_episode_to_air.name,
+      "Status": tvShowDetails.status
+    },
+    production_type: "Show",
+    production_companies: tvShowDetails.production_companies,
+    div_prefix: "show"
+  };
+  await displayProductionDetails(productionDetails);
+}
+
+async function displayProductionDetails(details) {
   const overlayDiv = document.createElement("div");
-  overlayDiv.style.backgroundImage = `url(${imageUrlFor(movieDetails.backdrop_path, "original")})`;
+  overlayDiv.style.backgroundImage = `url(${imageUrlFor(details.backdrop_path, "original")})`;
   overlayDiv.style.backgroundSize = "cover";
   overlayDiv.style.backgroundPosition = "center";
   overlayDiv.style.backgroundRepeat = "no-repeat";
@@ -95,41 +140,41 @@ async function displayMovieDetails() {
   detailsTop.className = "details-top";
 
   const imageDiv = document.createElement("div");
-  imageDiv.appendChild(createPosterImage(movieDetails.poster_path, movieDetails.title));
+  imageDiv.appendChild(createPosterImage(details.poster_path, details.title));
 
   const mainDetailsDiv = document.createElement("div");
   const titleHeading = document.createElement("h2");
-  titleHeading.textContent = movieDetails.title;
+  titleHeading.textContent = details.title;
 
   const starsParagraph = document.createElement("p");
   const starsIcon = document.createElement("i");
   starsIcon.classList.add("fas", "fa-star", "text-primary");
-  const starsText= `${movieDetails.vote_average.toFixed(1)} / 10`;
+  const starsText= `${details.vote_average.toFixed(1)} / 10`;
   starsParagraph.appendChild(starsIcon);
   starsParagraph.appendChild(document.createTextNode(starsText));
 
   const releaseDateParagraph = document.createElement("p");
   releaseDateParagraph.className = "text-muted";
-  releaseDateParagraph.textContent = `Release Date: ${getDisplayDate(movieDetails.release_date)}`;
+  releaseDateParagraph.textContent = `Release Date: ${getDisplayDate(details.release_date)}`;
 
   const overviewParagraph = document.createElement("p");
-  overviewParagraph.textContent = movieDetails.overview;
+  overviewParagraph.textContent = details.overview;
 
   const genresHeading = document.createElement("h5");
   genresHeading.textContent = "Genres";
   const genresList = document.createElement("ul");
   genresList.className = "list-group";
-  movieDetails.genres.forEach((genre) => {
+  details.genres.forEach((genre) => {
     const genreListItem = document.createElement("li");
     genreListItem.textContent = genre.name;
     genresList.appendChild(genreListItem);
   });
 
   const homepageLink = document.createElement("a");
-  homepageLink.href = movieDetails.homepage;
+  homepageLink.href = details.homepage;
   homepageLink.target = "_blank";
   homepageLink.className = "btn";
-  homepageLink.textContent = "Visit Movie Homepage";
+  homepageLink.textContent = `Visit ${details.production_type} Homepage`;
 
   mainDetailsDiv.appendChild(titleHeading);
   mainDetailsDiv.appendChild(starsParagraph);
@@ -146,20 +191,19 @@ async function displayMovieDetails() {
   detailsBottom.className = "details-bottom";
 
   const infoHeading = document.createElement("h2");
-  infoHeading.textContent = "Movie Info";
+  infoHeading.textContent = `${details.production_type} Info`;
 
   const infoList = document.createElement("ul");
-  infoList.appendChild(createProductionInfoItemElement("Budget", getDisplayUsDollars(movieDetails.budget)));
-  infoList.appendChild(createProductionInfoItemElement("Revenue", getDisplayUsDollars(movieDetails.revenue)));
-  infoList.appendChild(createProductionInfoItemElement("Runtime", `${movieDetails.runtime} minutes`));
-  infoList.appendChild(createProductionInfoItemElement("Status", movieDetails.status));
+  for (const infoName in details.info) {
+    infoList.appendChild(createProductionInfoItemElement(infoName, details.info[infoName]));
+  }
 
   const companiesHeading = document.createElement("h4");
   companiesHeading.textContent = "Production Companies";
   const companiesDiv = document.createElement("div");
   companiesDiv.className = "list-group";
-  companiesDiv.textContent = movieDetails.production_companies
-      .map(details => details.name)
+  companiesDiv.textContent = details.production_companies
+      .map(production_company => production_company.name)
       .join(", ");
 
   detailsBottom.appendChild(infoHeading);
@@ -167,107 +211,10 @@ async function displayMovieDetails() {
   detailsBottom.appendChild(companiesHeading);
   detailsBottom.appendChild(companiesDiv);
 
-  const movieDetailsDiv = document.getElementById("movie-details");
-  movieDetailsDiv.appendChild(overlayDiv);
-  movieDetailsDiv.appendChild(detailsTop);
-  movieDetailsDiv.appendChild(detailsBottom);
-}
-
-async function displayTvShowDetails() {
-  const tvShowDetails = await doFetchTvShowDetails(THEMOVIEDB_BEARER_TOKEN, getCurrentProductionId());
-
-  const overlayDiv = document.createElement("div");
-  overlayDiv.style.backgroundImage = `url(${imageUrlFor(tvShowDetails.backdrop_path, "original")})`;
-  overlayDiv.style.backgroundSize = "cover";
-  overlayDiv.style.backgroundPosition = "center";
-  overlayDiv.style.backgroundRepeat = "no-repeat";
-  overlayDiv.style.height = "100vh";
-  overlayDiv.style.width = "100vw";
-  overlayDiv.style.position = "absolute";
-  overlayDiv.style.top = "0";
-  overlayDiv.style.left = "0";
-  overlayDiv.style.zIndex = "-1";
-  overlayDiv.style.opacity = "0.1";
-
-  const detailsTop = document.createElement("div");
-  detailsTop.className = "details-top";
-
-  const imageDiv = document.createElement("div");
-  imageDiv.appendChild(createPosterImage(tvShowDetails.poster_path, tvShowDetails.name));
-
-  const mainDetailsDiv = document.createElement("div");
-  const titleHeading = document.createElement("h2");
-  titleHeading.textContent = tvShowDetails.name;
-
-  const starsParagraph = document.createElement("p");
-  const starsIcon = document.createElement("i");
-  starsIcon.classList.add("fas", "fa-star", "text-primary");
-  const starsText= `${tvShowDetails.vote_average.toFixed(1)} / 10`;
-  starsParagraph.appendChild(starsIcon);
-  starsParagraph.appendChild(document.createTextNode(starsText));
-
-  const releaseDateParagraph = document.createElement("p");
-  releaseDateParagraph.className = "text-muted";
-  releaseDateParagraph.textContent = `Release Date: ${getDisplayDate(tvShowDetails.first_air_date)}`;
-
-  const overviewParagraph = document.createElement("p");
-  overviewParagraph.textContent = tvShowDetails.overview;
-
-  const genresHeading = document.createElement("h5");
-  genresHeading.textContent = "Genres";
-  const genresList = document.createElement("ul");
-  genresList.className = "list-group";
-  tvShowDetails.genres.forEach((genre) => {
-    const genreListItem = document.createElement("li");
-    genreListItem.textContent = genre.name;
-    genresList.appendChild(genreListItem);
-  });
-
-  const homepageLink = document.createElement("a");
-  homepageLink.href = tvShowDetails.homepage;
-  homepageLink.target = "_blank";
-  homepageLink.className = "btn";
-  homepageLink.textContent = "Visit Show Homepage";
-
-  mainDetailsDiv.appendChild(titleHeading);
-  mainDetailsDiv.appendChild(starsParagraph);
-  mainDetailsDiv.appendChild(releaseDateParagraph);
-  mainDetailsDiv.appendChild(overviewParagraph);
-  mainDetailsDiv.appendChild(genresHeading);
-  mainDetailsDiv.appendChild(genresList);
-  mainDetailsDiv.appendChild(homepageLink);
-
-  detailsTop.appendChild(imageDiv);
-  detailsTop.appendChild(mainDetailsDiv);
-
-  const detailsBottom = document.createElement("div");
-  detailsBottom.className = "details-bottom";
-
-  const infoHeading = document.createElement("h2");
-  infoHeading.textContent = "Show Info";
-
-  const infoList = document.createElement("ul");
-  infoList.appendChild(createProductionInfoItemElement("Number Of Episodes", tvShowDetails.number_of_episodes));
-  infoList.appendChild(createProductionInfoItemElement("Last Episode To Air", tvShowDetails.last_episode_to_air.name));
-  infoList.appendChild(createProductionInfoItemElement("Status", tvShowDetails.status));
-
-  const companiesHeading = document.createElement("h4");
-  companiesHeading.textContent = "Production Companies";
-  const companiesDiv = document.createElement("div");
-  companiesDiv.className = "list-group";
-  companiesDiv.textContent = tvShowDetails.production_companies
-  .map(details => details.name)
-  .join(", ");
-
-  detailsBottom.appendChild(infoHeading);
-  detailsBottom.appendChild(infoList);
-  detailsBottom.appendChild(companiesHeading);
-  detailsBottom.appendChild(companiesDiv);
-
-  const showDetailsDiv = document.getElementById("show-details");
-  showDetailsDiv.appendChild(overlayDiv);
-  showDetailsDiv.appendChild(detailsTop);
-  showDetailsDiv.appendChild(detailsBottom);
+  const detailsDiv = document.getElementById(`${details.div_prefix}-details`);
+  detailsDiv.appendChild(overlayDiv);
+  detailsDiv.appendChild(detailsTop);
+  detailsDiv.appendChild(detailsBottom);
 }
 
 function createPosterImage(posterPath, altText) {
