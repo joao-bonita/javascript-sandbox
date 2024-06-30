@@ -149,10 +149,10 @@ async function displayMovieDetails() {
   infoHeading.textContent = "Movie Info";
 
   const infoList = document.createElement("ul");
-  infoList.appendChild(createMovieInfoItemElement("Budget", getDisplayUsDollars(movieDetails.budget)));
-  infoList.appendChild(createMovieInfoItemElement("Revenue", getDisplayUsDollars(movieDetails.revenue)));
-  infoList.appendChild(createMovieInfoItemElement("Runtime", `${movieDetails.runtime} minutes`));
-  infoList.appendChild(createMovieInfoItemElement("Status", movieDetails.status));
+  infoList.appendChild(createProductionInfoItemElement("Budget", getDisplayUsDollars(movieDetails.budget)));
+  infoList.appendChild(createProductionInfoItemElement("Revenue", getDisplayUsDollars(movieDetails.revenue)));
+  infoList.appendChild(createProductionInfoItemElement("Runtime", `${movieDetails.runtime} minutes`));
+  infoList.appendChild(createProductionInfoItemElement("Status", movieDetails.status));
 
   const companiesHeading = document.createElement("h4");
   companiesHeading.textContent = "Production Companies";
@@ -234,9 +234,9 @@ async function displayTvShowDetails() {
   infoHeading.textContent = "Show Info";
 
   const infoList = document.createElement("ul");
-  infoList.appendChild(createMovieInfoItemElement("Number Of Episodes", tvShowDetails.number_of_episodes));
-  infoList.appendChild(createMovieInfoItemElement("Last Episode To Air", "???"));
-  infoList.appendChild(createMovieInfoItemElement("Status", tvShowDetails.status));
+  infoList.appendChild(createProductionInfoItemElement("Number Of Episodes", tvShowDetails.number_of_episodes));
+  infoList.appendChild(createProductionInfoItemElement("Last Episode To Air", "???"));
+  infoList.appendChild(createProductionInfoItemElement("Status", tvShowDetails.status));
 
   const companiesHeading = document.createElement("h4");
   companiesHeading.textContent = "Production Companies";
@@ -268,7 +268,7 @@ function imageUrlFor(pathToImage, size) {
   return new URL(`/t/p/${size}${pathToImage}`, "https://image.tmdb.org");
 }
 
-function createMovieInfoItemElement(name, value) {
+function createProductionInfoItemElement(name, value) {
   const listItem = document.createElement("li");
   const span = document.createElement("span");
   span.className = "text-secondary";
