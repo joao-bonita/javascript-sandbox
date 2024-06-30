@@ -248,7 +248,7 @@ async function displayTvShowDetails() {
 
   const infoList = document.createElement("ul");
   infoList.appendChild(createProductionInfoItemElement("Number Of Episodes", tvShowDetails.number_of_episodes));
-  infoList.appendChild(createProductionInfoItemElement("Last Episode To Air", "???"));
+  infoList.appendChild(createProductionInfoItemElement("Last Episode To Air", tvShowDetails.last_episode_to_air.name));
   infoList.appendChild(createProductionInfoItemElement("Status", tvShowDetails.status));
 
   const companiesHeading = document.createElement("h4");
